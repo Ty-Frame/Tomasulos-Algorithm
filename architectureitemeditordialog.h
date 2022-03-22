@@ -18,7 +18,7 @@ class ArchitectureItemEditorDialog : public QDialog
     Q_OBJECT
 
 public:
-    explicit ArchitectureItemEditorDialog(QWidget *parent = nullptr);
+    explicit ArchitectureItemEditorDialog(QWidget *parent = nullptr, FunctionalUnit* fuPointer = nullptr);
     ~ArchitectureItemEditorDialog();
     FunctionalUnit returnFunctionalUnit();
 

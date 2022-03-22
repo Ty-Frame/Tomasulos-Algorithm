@@ -1,13 +1,32 @@
 #include "architectureitemeditordialog.h"
 #include "ui_architectureitemeditordialog.h"
 
-ArchitectureItemEditorDialog::ArchitectureItemEditorDialog(QWidget *parent) :
+ArchitectureItemEditorDialog::ArchitectureItemEditorDialog(QWidget *parent, FunctionalUnit* fuPointer) :
     QDialog(parent),
     ui(new Ui::ArchitectureItemEditorDialog)
 {
     ui->setupUi(this);
 
     initializeDialog();
+
+    if(fuPointer){
+        ui->nameLineEdit->setText(fuPointer->mName);
+        ui->countSpinBox->setValue(fuPointer->mFunctionalUnitCount);
+        ui->latencySpinBox->setValue(fuPointer->mLatency);
+        ui->functionalUnitTypeComboBox->setCurrentText(ToString(fuPointer->mFunctionalUnitType));
+
+        for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
+            if(IsOfFunctionalUnitDataType(fuPointer, StringToFunctionalUnitDataType(cb->text()))) cb->setChecked(true);
+        }
+
+        for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
+            if(IsOfArithmeticOptions(fuPointer, StringToArithmeticOptions(cb->text()))) cb->setChecked(true);
+        }
+
+        for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
+            if(IsOfMemoryOptions(fuPointer, StringToMemoryOptions(cb->text()))) cb->setChecked(true);
+        }
+    }
 }
 
 ArchitectureItemEditorDialog::~ArchitectureItemEditorDialog()

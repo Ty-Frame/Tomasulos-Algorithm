@@ -161,6 +161,33 @@ struct FunctionalUnit{
     MemoryOptions mMemoryOptions = MemoryOptions::None;
 };
 
+inline bool operator==(FunctionalUnit a, FunctionalUnit b){
+    return (a.mName == b.mName &&
+            a.mFunctionalUnitCount == b.mFunctionalUnitCount &&
+            a.mLatency == b.mLatency &&
+            a.mFunctionalUnitType == b.mFunctionalUnitType &&
+            a.mFunctionalUnitDataType == b.mFunctionalUnitDataType &&
+            a.mArithmeticOptions == b.mArithmeticOptions &&
+            a.mMemoryOptions == b.mMemoryOptions
+            );
+}
+
+inline bool IsOfFunctionalUnitType(FunctionalUnit* fu, FunctionalUnitType fuType){
+    return (fu->mFunctionalUnitType & fuType) == fuType;
+};
+
+inline bool IsOfFunctionalUnitDataType(FunctionalUnit* fu, FunctionalUnitDataType fuDType){
+    return (fu->mFunctionalUnitDataType & fuDType) == fuDType;
+};
+
+inline bool IsOfArithmeticOptions(FunctionalUnit* fu, ArithmeticOptions arithOpt){
+    return (fu->mArithmeticOptions & arithOpt) == arithOpt;
+};
+
+inline bool IsOfMemoryOptions(FunctionalUnit* fu, MemoryOptions memOpt){
+    return (fu->mMemoryOptions & memOpt) == memOpt;
+};
+
 inline QString ToString(FunctionalUnit a){
     QString returnString = a.mName + ": Count{" + QString::fromStdString(to_string(a.mFunctionalUnitCount)) + "}";
     returnString.append(", Latency{" + QString::fromStdString(to_string(a.mLatency)) + "}");
