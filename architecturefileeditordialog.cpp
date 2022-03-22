@@ -147,6 +147,20 @@ void ArchitectureFileEditorDialog::readInFile(QString *filename)
 
 void ArchitectureFileEditorDialog::on_editItemPushButton_clicked()
 {
+    if(ui->architectureItemsTableWidget->selectionModel()->selectedRows().size() == 0){
+        QMessageBox::critical(this, "Error Editing Architecture Item", "An item must be selected in the architecture items table.");
+        return;
+    }
 
+    QModelIndex selectedIndex = ui->architectureItemsTableWidget->selectionModel()->selectedRows().first();
+    FunctionalUnit selectedFU = StringToFunctionalUnit(ui->architectureItemsTableWidget->item(selectedIndex.row(), selectedIndex.column())->text());
+    int beforeIndex = mFunctionalUnitList->indexOf(selectedFU);
+
+    ArchitectureItemEditorDialog dlg(this, &selectedFU);
+    if(dlg.exec()){
+        mFunctionalUnitList->removeAt(beforeIndex);
+        mFunctionalUnitList->insert(beforeIndex, dlg.returnFunctionalUnit());
+        this->populateArchitectureItemTable();
+    }
 }
 
