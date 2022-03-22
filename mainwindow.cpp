@@ -21,7 +21,7 @@ MainWindow::~MainWindow()
 void MainWindow::initializeWindow()
 {
     // Assign window title
-    this->setWindowTitle("Tomasulo's Algorithm Visualizer");
+    this->setWindowTitle("Tomasulo's Algorithm Visualizer " + QString::fromStdString(VERSION));
     this->setWindowState(Qt::WindowMaximized);
 
     // Initializing needed directories if needed
