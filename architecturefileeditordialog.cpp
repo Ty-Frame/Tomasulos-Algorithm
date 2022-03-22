@@ -78,14 +78,17 @@ void ArchitectureFileEditorDialog::on_buttonBox_accepted()
         QMessageBox::critical(this, QString::fromStdString("Error Saving Architecture File"), "Architecture must be given a name.");
         return;
     }
-    if(QFileInfo::exists(ARCHITECTURE_FILES_DIRECTORY_PATH+"/"+ui->architectureNameLineEdit->text()+".txt")){
-        QMessageBox::StandardButton reply = QMessageBox::question(this,"Error Saving Architecture File","Do you wish to overwrite file:\n"+ARCHITECTURE_FILES_DIRECTORY_PATH+"/"+ui->architectureNameLineEdit->text()+".txt");
+
+    QString filename = ARCHITECTURE_FILES_DIRECTORY_PATH + ui->architectureNameLineEdit->text() + ".txt";
+
+    if(QFileInfo::exists(filename)){
+        QMessageBox::StandardButton reply = QMessageBox::question(this,"Error Saving Architecture File","Do you wish to overwrite file:\n" + filename);
         if(reply == QMessageBox::No) return;
     }
 
-    QFile outFile(ARCHITECTURE_FILES_DIRECTORY_PATH+"/"+ui->architectureNameLineEdit->text()+".txt");
+    QFile outFile(filename);
     if(!outFile.open(QIODevice::WriteOnly | QIODevice::Text)){
-        QMessageBox::critical(this, "Error Saving Architecture File", "Could not open file:\n" + ARCHITECTURE_FILES_DIRECTORY_PATH+"/"+ui->architectureNameLineEdit->text()+".txt");
+        QMessageBox::critical(this, "Error Saving Architecture File", "Could not open file:\n" + filename);
         return;
     }
     QTextStream outFileStream(&outFile);
