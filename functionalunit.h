@@ -48,11 +48,10 @@ inline FunctionalUnitType StringToFunctionalUnitType(QString a){
 enum class FunctionalUnitDataType{
     None = 0,
     Integer = 1,
-    SinglePointFloat = 2,
-    DoublePointFloat = 4
+    Float = 2
 };
 
-static const FunctionalUnitDataType AllFunctionalUnitDataType[] = {FunctionalUnitDataType::None, FunctionalUnitDataType::Integer, FunctionalUnitDataType::SinglePointFloat, FunctionalUnitDataType::DoublePointFloat};
+static const FunctionalUnitDataType AllFunctionalUnitDataType[] = {FunctionalUnitDataType::None, FunctionalUnitDataType::Integer, FunctionalUnitDataType::Float};
 
 inline FunctionalUnitDataType operator|(FunctionalUnitDataType a, FunctionalUnitDataType b){
     return static_cast<FunctionalUnitDataType>(static_cast<int>(a) | static_cast<int>(b));
@@ -66,8 +65,7 @@ inline const QString ToString(FunctionalUnitDataType a){
     switch(a){
         case FunctionalUnitDataType::None: return QString("None");
         case FunctionalUnitDataType::Integer: return QString("Integer");
-        case FunctionalUnitDataType::SinglePointFloat: return QString("Single Point Float");
-        case FunctionalUnitDataType::DoublePointFloat: return QString("Double Point Float");
+        case FunctionalUnitDataType::Float: return QString("Float");
         default: throw QString("[Unknown FunctionalUnitDataType]");
     }
 }
