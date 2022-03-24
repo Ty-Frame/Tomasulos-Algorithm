@@ -294,4 +294,31 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
     return fu;
 }
 
+struct GeneralFunctionalUnit{
+    FunctionalUnit mFunctionalUnit;
+    unsigned int mCountDown = 0;
+    bool mBusy = false;
+    QString mOperation = "";
+    QString mSourceOne = "";
+    QString mSourceTwo = "";
+};
+
+struct MemoryFunctionalUnit{
+    FunctionalUnit mFunctionalUnit;
+    bool mBusy = false;
+    QString mOperation = "";
+    QString mSourceOne = "";
+};
+
+struct RegisterFunctionalUnit{
+    FunctionalUnit mFunctionalUnit;
+    QString mFunctionalUnitWithClaim = "";
+};
+
+struct CommonDataBusFunctionalUnit{
+    FunctionalUnit mFunctionalUnit;
+    bool mBusy = false;
+    QString mFunctionalUnitWithClaim = "";
+};
+
 #endif // FUNCTIONALUNIT_H
