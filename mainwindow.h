@@ -10,6 +10,7 @@
 #include <QWidget>
 #include <QFileDialog>
 #include <QDir>
+#include <QCheckBox>
 #include "architecturefileeditordialog.h"
 
 QT_BEGIN_NAMESPACE
@@ -41,6 +42,19 @@ private:
     QPushButton* mStatusBarCancelButton = nullptr;
     QHBoxLayout* mStatusBarLayout = nullptr;
 
+    // Lists to keep track of instructions, memory functional units, other funcitonal units, and registers
+    QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit>();
+    QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit>();
+    QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit>();
+    QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit>();
+    //QList<Instruction>* mInstructionList = new QList<Instruction>();
+
+    void populateFunctionalUnitReservationTable();
+    void populateCommonDataBusAndRegisterTable();
+    void populateMemoryReservationTable();
+
+
     void initializeWindow();
+    void loadArchitecture(QString filename);
 };
 #endif // MAINWINDOW_H

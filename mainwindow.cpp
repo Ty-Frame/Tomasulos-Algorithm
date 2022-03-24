@@ -15,6 +15,17 @@ MainWindow::~MainWindow()
     // Delete status bar widgets
     mStatusBarWidget->deleteLater();
 
+    // Clear and delete functional unit lists
+    mGeneralFunctionalUnitList->clear();
+    mMemoryFunctionalUnitList->clear();
+    mRegisterFunctionalUnitList->clear();
+    mCommonDataBusFunctionalUnitList->clear();
+
+    delete mGeneralFunctionalUnitList;
+    delete mMemoryFunctionalUnitList;
+    delete mRegisterFunctionalUnitList;
+    delete mCommonDataBusFunctionalUnitList;
+
     delete ui;
 }
 
@@ -71,7 +82,7 @@ void MainWindow::initializeWindow()
     // Functional unit reservation status columns: time, name, busy, operation, source 1 register, FU for source 1 register, source 2 register, FU for source 2 register
     ui->functionalUnitReservationStatusTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->functionalUnitReservationStatusTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->functionalUnitReservationStatusTableWidget->setColumnCount(8);
+    ui->functionalUnitReservationStatusTableWidget->setColumnCount(6);
     ui->functionalUnitReservationStatusTableWidget->setRowCount(1);
     model = ui->functionalUnitReservationStatusTableWidget->model();
     model->setData(model->index(0,0),QStringLiteral("Time"));
@@ -82,46 +93,36 @@ void MainWindow::initializeWindow()
     model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(0,3),QStringLiteral("Operation"));
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,4),QStringLiteral("Source 1 Register"));
+    model->setData(model->index(0,4),QStringLiteral("Source 1"));
     model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,5),QStringLiteral("FU for Source 1 Register"));
+    model->setData(model->index(0,5),QStringLiteral("Source 2"));
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,6),QStringLiteral("Source 2 Register"));
-    model->setData(model->index(0,6), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,7),QStringLiteral("Fu for Source 2 Register"));
-    model->setData(model->index(0,7), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Memory reservation status columns: name, busy, address
     ui->memoryReservationStatusTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->memoryReservationStatusTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->memoryReservationStatusTableWidget->setColumnCount(3);
+    ui->memoryReservationStatusTableWidget->setColumnCount(4);
     ui->memoryReservationStatusTableWidget->setRowCount(1);
     model = ui->memoryReservationStatusTableWidget->model();
     model->setData(model->index(0,0),QStringLiteral("Name"));
     model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,1),QStringLiteral("Busy"));
+    model->setData(model->index(0,1),QStringLiteral("Operation"));
     model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,2),QStringLiteral("Address"));
+    model->setData(model->index(0,2),QStringLiteral("Busy"));
     model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Address"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Register hold table has column for all registers, row is labeled 'Functional Unit'
-    ui->registerHoldTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
-    ui->registerHoldTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->registerHoldTableWidget->setColumnCount(6);
-    ui->registerHoldTableWidget->setRowCount(2);
-    model = ui->registerHoldTableWidget->model();
-    model->setData(model->index(0,1),QStringLiteral("F0"));
-    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,2),QStringLiteral("F1"));
-    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,3),QStringLiteral("F2"));
-    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,4),QStringLiteral("F3"));
-    model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,5),QStringLiteral("F4"));
-    model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+    ui->commonDataBusAndRegisterStatusTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->commonDataBusAndRegisterStatusTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->commonDataBusAndRegisterStatusTableWidget->setColumnCount(1);
+    ui->commonDataBusAndRegisterStatusTableWidget->setRowCount(4);
+    model = ui->commonDataBusAndRegisterStatusTableWidget->model();
     model->setData(model->index(1,0),QStringLiteral("Funcitonal Unit"));
     model->setData(model->index(1,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(3,0),QStringLiteral("Funcitonal Unit"));
+    model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
 void MainWindow::on_actionCreate_Architecture_triggered()
@@ -133,7 +134,182 @@ void MainWindow::on_actionCreate_Architecture_triggered()
 
 void MainWindow::on_actionLoad_Architecture_triggered()
 {
+    QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", ARCHITECTURE_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
+    if(filename.isEmpty()) return;
 
+    loadArchitecture(filename);
+}
+
+void MainWindow::loadArchitecture(QString filename)
+{
+    QFile inFile(filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(this, QString::fromStdString("Error Opening Architecture File"), QString::fromStdString(std::string("Could not open file:\n")) + filename);
+        return;
+    }
+
+    QTextStream inFileStream(&inFile);
+    FunctionalUnit fu;
+    while(!inFileStream.atEnd()){
+        QString fuString = inFileStream.readLine();
+        try {
+            fu = StringToFunctionalUnit(fuString);
+        }  catch (QString e) {
+            QMessageBox::critical(this, "Error Reading In Architecture Item", e);
+        }
+
+        switch (fu.mFunctionalUnitType) {
+        case FunctionalUnitType::Arithmetic:{
+            for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
+                GeneralFunctionalUnit gfu;
+                gfu.mFunctionalUnit = fu;
+                gfu.mFunctionalUnit.mName = gfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                mGeneralFunctionalUnitList->append(gfu);
+            }
+            break;
+        }
+        case FunctionalUnitType::Memory:{
+            for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
+                MemoryFunctionalUnit mfu;
+                mfu.mFunctionalUnit = fu;
+                mfu.mFunctionalUnit.mName = mfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                mMemoryFunctionalUnitList->append(mfu);
+            }
+            break;
+        }
+        case FunctionalUnitType::CommonDataBus:{
+            for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
+                CommonDataBusFunctionalUnit cdbfu;
+                cdbfu.mFunctionalUnit = fu;
+                cdbfu.mFunctionalUnit.mName = cdbfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                mCommonDataBusFunctionalUnitList->append(cdbfu);
+            }
+            break;
+        }
+        case FunctionalUnitType::Register:{
+            for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
+                RegisterFunctionalUnit rfu;
+                rfu.mFunctionalUnit = fu;
+                rfu.mFunctionalUnit.mName = rfu.mFunctionalUnit.mName + QString::number(i+1);
+                mRegisterFunctionalUnitList->append(rfu);
+            }
+            break;
+        }
+        default:{
+            QMessageBox::critical(this, QString::fromStdString("Error Loading Architecture"), "Not sure what to do with functional unit of type: " + ToString(fu.mFunctionalUnitType) + "Funcitonal Unit: " + fuString);
+            continue;
+            break;
+        }
+        }
+    }
+    inFile.close();
+
+    populateFunctionalUnitReservationTable();
+    populateMemoryReservationTable();
+    populateCommonDataBusAndRegisterTable();
+}
+
+void MainWindow::populateFunctionalUnitReservationTable()
+{
+    ui->functionalUnitReservationStatusTableWidget->clear();
+
+    ui->functionalUnitReservationStatusTableWidget->setColumnCount(6);
+    ui->functionalUnitReservationStatusTableWidget->setRowCount(1 + mGeneralFunctionalUnitList->length());
+    auto model = ui->functionalUnitReservationStatusTableWidget->model();
+    model->setData(model->index(0,0),QStringLiteral("Time"));
+    model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,1),QStringLiteral("Name"));
+    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,2),QStringLiteral("Busy"));
+    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Operation"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,4),QStringLiteral("Source 1"));
+    model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,5),QStringLiteral("Source 2"));
+    model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    for (int i = 0; i<mGeneralFunctionalUnitList->length(); i++) {
+        model->setData(model->index(1 + i,0),mGeneralFunctionalUnitList->at(i).mCountDown);
+        model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,1),mGeneralFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+        QWidget* widget = new QWidget();
+        QHBoxLayout* layout = new QHBoxLayout();
+        widget->setLayout(layout);
+        layout->setAlignment(Qt::AlignCenter);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(new QCheckBox(""));
+        ui->functionalUnitReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
+        model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,4),mGeneralFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,5),mGeneralFunctionalUnitList->at(i).mSourceTwo);
+        model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+    }
+}
+
+void MainWindow::populateCommonDataBusAndRegisterTable()
+{
+    ui->commonDataBusAndRegisterStatusTableWidget->clear();
+
+    if(mCommonDataBusFunctionalUnitList->length() > mRegisterFunctionalUnitList->length()) ui->commonDataBusAndRegisterStatusTableWidget->setColumnCount(1 + mCommonDataBusFunctionalUnitList->length());
+    else ui->commonDataBusAndRegisterStatusTableWidget->setColumnCount(1 + mRegisterFunctionalUnitList->length());
+
+    ui->commonDataBusAndRegisterStatusTableWidget->setRowCount(4);
+    auto model = ui->commonDataBusAndRegisterStatusTableWidget->model();
+    model->setData(model->index(1,0),QStringLiteral("Funcitonal Unit"));
+    model->setData(model->index(1,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(3,0),QStringLiteral("Funcitonal Unit"));
+    model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    for (int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++) {
+        model->setData(model->index(2, 1 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(2, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(2, 2 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
+        model->setData(model->index(2, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+    }
+
+    for (int i = 0; i<mRegisterFunctionalUnitList->length(); i++) {
+        model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(0, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(0, 2 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
+        model->setData(model->index(0, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+    }
+}
+
+void MainWindow::populateMemoryReservationTable()
+{
+    ui->memoryReservationStatusTableWidget->clear();
+
+    ui->memoryReservationStatusTableWidget->setColumnCount(4);
+    ui->memoryReservationStatusTableWidget->setRowCount(1 + mMemoryFunctionalUnitList->length());
+    auto model = ui->memoryReservationStatusTableWidget->model();
+    model->setData(model->index(0,0),QStringLiteral("Name"));
+    model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,1),QStringLiteral("Operation"));
+    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,2),QStringLiteral("Busy"));
+    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Address"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    for (int i = 0; i<mMemoryFunctionalUnitList->length(); i++) {
+        model->setData(model->index(1 + i, 0), mMemoryFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i, 0), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i, 1), mMemoryFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i, 1), Qt::AlignCenter, Qt::TextAlignmentRole);
+        QWidget* widget = new QWidget();
+        QHBoxLayout* layout = new QHBoxLayout();
+        widget->setLayout(layout);
+        layout->setAlignment(Qt::AlignCenter);
+        layout->setContentsMargins(0, 0, 0, 0);
+        layout->addWidget(new QCheckBox(""));
+        ui->memoryReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
+        model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i, 3), Qt::AlignCenter, Qt::TextAlignmentRole);
+    }
 }
 
 void MainWindow::on_actionEdit_Architecture_triggered()
