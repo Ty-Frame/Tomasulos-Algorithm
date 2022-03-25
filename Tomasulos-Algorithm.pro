@@ -20,6 +20,7 @@ HEADERS += \
     common.h \
     descriptiveenumerations.h \
     functionalunit.h \
+    instruction.h \
     mainwindow.h
 
 FORMS += \

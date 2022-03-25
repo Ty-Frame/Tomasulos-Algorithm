@@ -84,7 +84,7 @@ void ArchitectureItemEditorDialog::initializeDialog()
     QVBoxLayout* functionalUnitDataTypeGroupBoxLayout = new QVBoxLayout();
     ui->functionalUnitDataTypeGroupBox->setLayout(functionalUnitDataTypeGroupBoxLayout);
     for(auto fuDType: AllFunctionalUnitDataType){
-        if(fuDType != FunctionalUnitDataType::None){
+        if(fuDType != DataType::None){
             functionalUnitDataTypeGroupBoxLayout->addWidget(new QCheckBox(ToString(fuDType)));
         }
     }
