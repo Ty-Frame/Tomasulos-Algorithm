@@ -1,0 +1,149 @@
+#ifndef DESCRIPTIVEENUMERATIONS_H
+#define DESCRIPTIVEENUMERATIONS_H
+
+#include <QString>
+#include <QDebug>
+
+// FunctionalUnitType start
+enum class FunctionalUnitType{
+    None = 0,
+    Arithmetic = 1,
+    Memory = 2,
+    CommonDataBus = 4,
+    Register = 8
+};
+
+static const FunctionalUnitType AllFunctionalUnitType[] = {FunctionalUnitType::None , FunctionalUnitType::Arithmetic, FunctionalUnitType::Memory, FunctionalUnitType::CommonDataBus, FunctionalUnitType::Register};
+
+inline FunctionalUnitType operator|(FunctionalUnitType a, FunctionalUnitType b){
+    return static_cast<FunctionalUnitType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline FunctionalUnitType operator&(FunctionalUnitType a, FunctionalUnitType b){
+    return static_cast<FunctionalUnitType>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(FunctionalUnitType a){
+    switch(a){
+        case FunctionalUnitType::None: return QString("None");
+        case FunctionalUnitType::Arithmetic: return QString("Arithmetic");
+        case FunctionalUnitType::Memory: return QString("Memory");
+        case FunctionalUnitType::CommonDataBus: return QString("Common Data Bus");
+        case FunctionalUnitType::Register: return QString("Register");
+        default: throw QString("[Unknown FuncitonalUnitType]");
+    }
+}
+
+inline FunctionalUnitType StringToFunctionalUnitType(QString a){
+    for(auto fuType : AllFunctionalUnitType){
+        if(ToString(fuType) == a) return fuType;
+    }
+    throw QString("[Unknown FunctionalUnitType]");
+}
+
+// FunctionalUnitDataType start
+enum class FunctionalUnitDataType{
+    None = 0,
+    Integer = 1,
+    Float = 2
+};
+
+static const FunctionalUnitDataType AllFunctionalUnitDataType[] = {FunctionalUnitDataType::None, FunctionalUnitDataType::Integer, FunctionalUnitDataType::Float};
+
+inline FunctionalUnitDataType operator|(FunctionalUnitDataType a, FunctionalUnitDataType b){
+    return static_cast<FunctionalUnitDataType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline FunctionalUnitDataType operator&(FunctionalUnitDataType a, FunctionalUnitDataType b){
+    return static_cast<FunctionalUnitDataType>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(FunctionalUnitDataType a){
+    switch(a){
+        case FunctionalUnitDataType::None: return QString("None");
+        case FunctionalUnitDataType::Integer: return QString("Integer");
+        case FunctionalUnitDataType::Float: return QString("Float");
+        default: throw QString("[Unknown FunctionalUnitDataType]");
+    }
+}
+
+inline FunctionalUnitDataType StringToFunctionalUnitDataType(QString a){
+    for(auto fuDType : AllFunctionalUnitDataType){
+        if(ToString(fuDType) == a) return fuDType;
+    }
+    throw QString("[Unknown FunctionalUnitDataType]");
+}
+
+// MemoryOptions start
+enum class MemoryOptions{
+    None = 0,
+    Load = 1,
+    Store = 2
+};
+
+static const MemoryOptions AllMemoryOptions[] = {MemoryOptions::None,  MemoryOptions::Load,  MemoryOptions::Store};
+
+inline MemoryOptions operator|(MemoryOptions a, MemoryOptions b){
+    return static_cast<MemoryOptions>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline MemoryOptions operator&(MemoryOptions a, MemoryOptions b){
+    return static_cast<MemoryOptions>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(MemoryOptions a){
+    switch(a){
+        case MemoryOptions::None: return QString("None");
+        case MemoryOptions::Load: return QString("Load");
+        case MemoryOptions::Store: return QString("Store");
+        default: throw QString("[Unknown MemoryOptions]");
+    }
+}
+
+inline MemoryOptions StringToMemoryOptions(QString a){
+    for(auto memOps : AllMemoryOptions){
+        if(ToString(memOps) == a) return memOps;
+    }
+    throw QString("[Unknown MemoryOptions]");
+}
+
+// ArithmeticOptions start
+enum class ArithmeticOptions{
+    None = 0,
+    Add = 1,
+    Subtract = 2,
+    Multiply = 4,
+    Divide = 8,
+    BranchEvaluation = 16
+};
+
+static const ArithmeticOptions AllArithmeticOptions[] = {ArithmeticOptions::None, ArithmeticOptions::Add, ArithmeticOptions::Subtract, ArithmeticOptions::Multiply, ArithmeticOptions::Divide, ArithmeticOptions::BranchEvaluation};
+
+inline ArithmeticOptions operator|(ArithmeticOptions a, ArithmeticOptions b){
+    return static_cast<ArithmeticOptions>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline ArithmeticOptions operator&(ArithmeticOptions a, ArithmeticOptions b){
+    return static_cast<ArithmeticOptions>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(ArithmeticOptions a){
+    switch(a){
+        case ArithmeticOptions::None: return QString("None");
+        case ArithmeticOptions::Add: return QString("Add");
+        case ArithmeticOptions::Subtract: return QString("Subtract");
+        case ArithmeticOptions::Multiply: return QString("Multiply");
+        case ArithmeticOptions::Divide: return QString("Divide");
+        case ArithmeticOptions::BranchEvaluation: return QString("Branch Evaluation");
+        default: throw QString("[Unknown ArithmeticOptions]");
+    }
+}
+
+inline ArithmeticOptions StringToArithmeticOptions(QString a){
+    for(auto airthOps : AllArithmeticOptions){
+        if(ToString(airthOps) == a) return airthOps;
+    }
+    throw QString("[Unknown ArithmeticOptions]");
+}
+
+#endif // DESCRIPTIVEENUMERATIONS_H

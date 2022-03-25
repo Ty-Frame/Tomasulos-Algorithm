@@ -18,6 +18,7 @@ HEADERS += \
     architecturefileeditordialog.h \
     architectureitemeditordialog.h \
     common.h \
+    descriptiveenumerations.h \
     functionalunit.h \
     mainwindow.h
 
