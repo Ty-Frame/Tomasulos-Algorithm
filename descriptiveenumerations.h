@@ -3,6 +3,40 @@
 
 #include <QString>
 #include <QDebug>
+#include <QRegularExpression>
+
+// InstructionType start
+enum class InstructionType{
+    None = 0,
+    Arithmetic = 1,
+    Memory = 2
+};
+
+static const InstructionType AllInstructionType[] = {InstructionType::None , InstructionType::Arithmetic, InstructionType::Memory};
+
+inline InstructionType operator|(InstructionType a, InstructionType b){
+    return static_cast<InstructionType>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline InstructionType operator&(InstructionType a, InstructionType b){
+    return static_cast<InstructionType>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(InstructionType a){
+    switch(a){
+        case InstructionType::None: return QString("None");
+        case InstructionType::Arithmetic: return QString("Arithmetic");
+        case InstructionType::Memory: return QString("Memory");
+        default: throw QString("[Unknown FuncitonalUnitType]");
+    }
+}
+
+inline InstructionType StringToInstructionType(QString a){
+    for(auto iType : AllInstructionType){
+        if(ToString(iType) == a) return iType;
+    }
+    throw QString("[Unknown FunctionalUnitType]");
+}
 
 // FunctionalUnitType start
 enum class FunctionalUnitType{
@@ -42,33 +76,33 @@ inline FunctionalUnitType StringToFunctionalUnitType(QString a){
 }
 
 // FunctionalUnitDataType start
-enum class FunctionalUnitDataType{
+enum class DataType{
     None = 0,
     Integer = 1,
     Float = 2
 };
 
-static const FunctionalUnitDataType AllFunctionalUnitDataType[] = {FunctionalUnitDataType::None, FunctionalUnitDataType::Integer, FunctionalUnitDataType::Float};
+static const DataType AllDataType[] = {DataType::None, DataType::Integer, DataType::Float};
 
-inline FunctionalUnitDataType operator|(FunctionalUnitDataType a, FunctionalUnitDataType b){
-    return static_cast<FunctionalUnitDataType>(static_cast<int>(a) | static_cast<int>(b));
+inline DataType operator|(DataType a, DataType b){
+    return static_cast<DataType>(static_cast<int>(a) | static_cast<int>(b));
 }
 
-inline FunctionalUnitDataType operator&(FunctionalUnitDataType a, FunctionalUnitDataType b){
-    return static_cast<FunctionalUnitDataType>(static_cast<int>(a) & static_cast<int>(b));
+inline DataType operator&(DataType a, DataType b){
+    return static_cast<DataType>(static_cast<int>(a) & static_cast<int>(b));
 }
 
-inline const QString ToString(FunctionalUnitDataType a){
+inline const QString ToString(DataType a){
     switch(a){
-        case FunctionalUnitDataType::None: return QString("None");
-        case FunctionalUnitDataType::Integer: return QString("Integer");
-        case FunctionalUnitDataType::Float: return QString("Float");
+        case DataType::None: return QString("None");
+        case DataType::Integer: return QString("Integer");
+        case DataType::Float: return QString("Float");
         default: throw QString("[Unknown FunctionalUnitDataType]");
     }
 }
 
-inline FunctionalUnitDataType StringToFunctionalUnitDataType(QString a){
-    for(auto fuDType : AllFunctionalUnitDataType){
+inline DataType StringToDataType(QString a){
+    for(auto fuDType : AllDataType){
         if(ToString(fuDType) == a) return fuDType;
     }
     throw QString("[Unknown FunctionalUnitDataType]");

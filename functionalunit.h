@@ -1,7 +1,6 @@
 #ifndef FUNCTIONALUNIT_H
 #define FUNCTIONALUNIT_H
 
-#include <QRegularExpression>
 #include "descriptiveenumerations.h"
 
 using namespace std;
@@ -11,7 +10,7 @@ struct FunctionalUnit{
     unsigned short int mFunctionalUnitCount = 1;
     unsigned int mLatency = 1;
     FunctionalUnitType mFunctionalUnitType = FunctionalUnitType::None;
-    FunctionalUnitDataType mFunctionalUnitDataType = FunctionalUnitDataType::None;
+    DataType mDataType = DataType::None;
     ArithmeticOptions mArithmeticOptions = ArithmeticOptions::None;
     MemoryOptions mMemoryOptions = MemoryOptions::None;
 };
@@ -21,7 +20,7 @@ inline bool operator==(FunctionalUnit a, FunctionalUnit b){
             a.mFunctionalUnitCount == b.mFunctionalUnitCount &&
             a.mLatency == b.mLatency &&
             a.mFunctionalUnitType == b.mFunctionalUnitType &&
-            a.mFunctionalUnitDataType == b.mFunctionalUnitDataType &&
+            a.mDataType == b.mDataType &&
             a.mArithmeticOptions == b.mArithmeticOptions &&
             a.mMemoryOptions == b.mMemoryOptions
             );
@@ -31,8 +30,8 @@ inline bool IsOfFunctionalUnitType(FunctionalUnit* fu, FunctionalUnitType fuType
     return (fu->mFunctionalUnitType & fuType) == fuType;
 };
 
-inline bool IsOfFunctionalUnitDataType(FunctionalUnit* fu, FunctionalUnitDataType fuDType){
-    return (fu->mFunctionalUnitDataType & fuDType) == fuDType;
+inline bool IsOfDataType(FunctionalUnit* fu, DataType dType){
+    return (fu->mDataType & dType) == dType;
 };
 
 inline bool IsOfArithmeticOptions(FunctionalUnit* fu, ArithmeticOptions arithOpt){
@@ -59,10 +58,10 @@ inline QString ToString(FunctionalUnit a){
     }
     returnString += "}";
 
-    returnString += ", FunctionalUnitDataType{";
-    for(auto fuDType: AllFunctionalUnitDataType){
-        if(fuDType != FunctionalUnitDataType::None && (a.mFunctionalUnitDataType & fuDType) == fuDType) {
-            returnString += ToString(fuDType);
+    returnString += ", DataType{";
+    for(auto dType: AllDataType){
+        if(dType != DataType::None && (a.mDataType & dType) == dType) {
+            returnString += ToString(dType);
             returnString += ", ";
         }
     }
@@ -121,12 +120,12 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto fuDType : match.captured(5).split(", ")){
-        if(fuDType.isEmpty()) continue;
+    for(auto dType : match.captured(5).split(", ")){
+        if(dType.isEmpty()) continue;
         try {
-            fu.mFunctionalUnitDataType = fu.mFunctionalUnitDataType | StringToFunctionalUnitDataType(fuDType);
+            fu.mDataType = fu.mDataType | StringToDataType(dType);
         }  catch (QString e) {
-            throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+fuDType);
+            throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+dType);
         }
     }
 

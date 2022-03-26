@@ -16,7 +16,7 @@ ArchitectureItemEditorDialog::ArchitectureItemEditorDialog(QWidget *parent, Func
         ui->functionalUnitTypeComboBox->setCurrentText(ToString(fuPointer->mFunctionalUnitType));
 
         for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
-            if(IsOfFunctionalUnitDataType(fuPointer, StringToFunctionalUnitDataType(cb->text()))) cb->setChecked(true);
+            if(IsOfDataType(fuPointer, StringToDataType(cb->text()))) cb->setChecked(true);
         }
 
         for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
@@ -46,7 +46,7 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
         for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
                 //qDebug()<<"Bitwise OR: "<<cb->text();
-                returnFU.mFunctionalUnitDataType = returnFU.mFunctionalUnitDataType | StringToFunctionalUnitDataType(cb->text());
+                returnFU.mDataType = returnFU.mDataType | StringToDataType(cb->text());
             }
         }
     }
@@ -83,8 +83,8 @@ void ArchitectureItemEditorDialog::initializeDialog()
 
     QVBoxLayout* functionalUnitDataTypeGroupBoxLayout = new QVBoxLayout();
     ui->functionalUnitDataTypeGroupBox->setLayout(functionalUnitDataTypeGroupBoxLayout);
-    for(auto fuDType: AllFunctionalUnitDataType){
-        if(fuDType != FunctionalUnitDataType::None){
+    for(auto fuDType: AllDataType){
+        if(fuDType != DataType::None){
             functionalUnitDataTypeGroupBoxLayout->addWidget(new QCheckBox(ToString(fuDType)));
         }
     }
