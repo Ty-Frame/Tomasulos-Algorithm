@@ -42,6 +42,9 @@ void MainWindow::initializeWindow()
     if(!QDir(INSTRUCTION_LIST_FILES_DIRECTORY_PATH).exists()){
         QDir().mkdir(INSTRUCTION_LIST_FILES_DIRECTORY_PATH);
     }
+    if(!QDir(SCRIPT_FILES_DIRECTORY_PATH).exists()){
+        QDir().mkdir(SCRIPT_FILES_DIRECTORY_PATH);
+    }
 
     // Initialize status bar
     mStatusBarWidget = new QWidget(this);
@@ -59,28 +62,26 @@ void MainWindow::initializeWindow()
     mStatusBarLayout->addWidget(mStatusBarCancelButton);
 
     // Initialize tables in status tab
-    // Instruction status table columns: label, instruction, destination register, source 1 register, source 2 register, issue clock cycle, execution complete clock cycle, write result clock cycle
+    // Instruction status table columns: instruction, destination register, source 1 register, source 2 register, issue clock cycle, execution complete clock cycle, write result clock cycle
     ui->instructionStatusTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
     ui->instructionStatusTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
-    ui->instructionStatusTableWidget->setColumnCount(8);
+    ui->instructionStatusTableWidget->setColumnCount(7);
     ui->instructionStatusTableWidget->setRowCount(1);
     auto model = ui->instructionStatusTableWidget->model();
-    model->setData(model->index(0,0),QStringLiteral("Label"));
+    model->setData(model->index(0,0),QStringLiteral("Instruction"));
     model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,1),QStringLiteral("Instruction"));
+    model->setData(model->index(0,1),QStringLiteral("Destination Register"));
     model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,2),QStringLiteral("Destination Register"));
+    model->setData(model->index(0,2),QStringLiteral("Source 1 Register"));
     model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,3),QStringLiteral("Source 1 Register"));
+    model->setData(model->index(0,3),QStringLiteral("Source 2 Register"));
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,4),QStringLiteral("Source 2 Register"));
+    model->setData(model->index(0,4),QStringLiteral("Issue CC"));
     model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,5),QStringLiteral("Issue CC"));
+    model->setData(model->index(0,5),QStringLiteral("Execution Completion CC"));
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,6),QStringLiteral("Execution Completion CC"));
+    model->setData(model->index(0,6),QStringLiteral("Write Result CC"));
     model->setData(model->index(0,6), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,7),QStringLiteral("Write Result CC"));
-    model->setData(model->index(0,7), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     // Functional unit reservation status columns: time, name, busy, operation, source 1 register, FU for source 1 register, source 2 register, FU for source 2 register
     ui->functionalUnitReservationStatusTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
@@ -147,7 +148,7 @@ void MainWindow::loadArchitecture(QString filename)
 {
     QFile inFile(filename);
     if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        QMessageBox::critical(this, QString::fromStdString("Error Opening Architecture File"), QString::fromStdString(std::string("Could not open file:\n")) + filename);
+        QMessageBox::critical(this, "Error Opening Architecture File","Could not open file:\n" + filename);
         return;
     }
 
@@ -193,13 +194,13 @@ void MainWindow::loadArchitecture(QString filename)
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
                 RegisterFunctionalUnit rfu;
                 rfu.mFunctionalUnit = fu;
-                rfu.mFunctionalUnit.mName = rfu.mFunctionalUnit.mName + QString::number(i+1);
+                rfu.mFunctionalUnit.mName = rfu.mFunctionalUnit.mName + QString::number(i);
                 mRegisterFunctionalUnitList->append(rfu);
             }
             break;
         }
         default:{
-            QMessageBox::critical(this, QString::fromStdString("Error Loading Architecture"), "Not sure what to do with functional unit of type: " + ToString(fu.mFunctionalUnitType) + "Funcitonal Unit: " + fuString);
+            QMessageBox::critical(this, "Error Loading Architecture", "Not sure what to do with functional unit of type: " + ToString(fu.mFunctionalUnitType) + "Funcitonal Unit: " + fuString);
             continue;
             break;
         }
@@ -332,7 +333,7 @@ void MainWindow::on_actionCreate_Instruction_List_triggered()
 
 void MainWindow::on_actionEdit_Instruction_List_triggered()
 {
-    QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
+    QString filename = QFileDialog::getOpenFileName(this, "Select Instruction List File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
     InstructionListFileEditorDialog dlg(this, &filename);
     dlg.exec();
@@ -341,6 +342,140 @@ void MainWindow::on_actionEdit_Instruction_List_triggered()
 
 void MainWindow::on_actionLoad_Instruction_List_triggered()
 {
+    QString filename = QFileDialog::getOpenFileName(this, "Select Instruction List File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
+    if(filename.isEmpty()) return;
 
+    QFile inFile(filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(this, "Error Opening Instruction List File","Could not open file:\n" + filename);
+        return;
+    }
+
+    mInstructionList->clear();
+
+    QTextStream inFileStream(&inFile);
+    Instruction inst;
+    while(!inFileStream.atEnd()){
+        QString iString = inFileStream.readLine();
+        try {
+            inst = StringToInstruction(iString);
+        }  catch (QString e) {
+            QMessageBox::critical(this, "Error Reading In Instruction", e);
+        }
+
+        mInstructionList->append(inst);
+    }
+    inFile.close();
+}
+
+
+void MainWindow::on_actionCreate_Script_triggered()
+{
+
+}
+
+
+void MainWindow::on_actionEdit_Script_triggered()
+{
+
+}
+
+
+void MainWindow::on_actionLoad_Script_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this, "Select Script File", SCRIPT_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
+    if(filename.isEmpty()) return;
+
+    loadScript(filename);
+}
+
+void MainWindow::loadScript(QString filename)
+{
+    if(mInstructionList->length()==0){
+        QMessageBox::critical(this, "Error Opening Script File", "Must load instruction list before a script.");
+        return;
+    }
+
+    QFile inFile(filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(this, "Error Opening Script File", "Could not open file:\n" + filename);
+        return;
+    }
+
+    mScriptInstructionList->clear();
+    QTextStream inFileStream(&inFile);
+    QString iString;
+    ScriptInstruction scrInst;
+    while(!inFileStream.atEnd()){
+        iString = inFileStream.readLine();
+        try {
+            scrInst = StringToScriptInstruction(iString);
+        }  catch (QString e) {
+            QMessageBox::critical(this, "Error Reading In Script Instruction", e);
+        }
+
+        for (int i = 0; i<mInstructionList->length(); i++) {
+            if(mInstructionList->at(i).mName == scrInst.mInstructionName){
+                scrInst.mInstruction = mInstructionList->at(i);
+                mScriptInstructionList->append(scrInst);
+                break;
+            }
+            if(i == mInstructionList->length()-1){
+                QMessageBox::critical(this, "Error Bad Script Import", "Instruction could not be found in instruction list: " + scrInst.mInstructionName);
+                mScriptInstructionList->clear();
+                return;
+            }
+        }
+    }
+    inFile.close();
+
+    populateInstructionTable();
+}
+
+void MainWindow::populateInstructionTable()
+{
+    ui->instructionStatusTableWidget->clear();
+
+    ui->instructionStatusTableWidget->setColumnCount(7);
+    ui->instructionStatusTableWidget->setRowCount(1 + mScriptInstructionList->length());
+    auto model = ui->instructionStatusTableWidget->model();
+
+    model->setData(model->index(0,0),QStringLiteral("Instruction"));
+    model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,1),QStringLiteral("Destination Register"));
+    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,2),QStringLiteral("Source 1 Register"));
+    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Source 2 Register"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,4),QStringLiteral("Issue CC"));
+    model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,5),QStringLiteral("Execution Completion CC"));
+    model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,6),QStringLiteral("Write Result CC"));
+    model->setData(model->index(0,6), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    for (int i = 0; i<mScriptInstructionList->length(); i++) {
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName);
+        model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mDestinationRegister);
+        model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mSourceOneRegister);
+        model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mIssueClockCycle);
+            model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+        if(mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+            model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,6),mScriptInstructionList->at(i).mWriteResultClockCycle);
+            model->setData(model->index(1 + i,6), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+    }
 }
 

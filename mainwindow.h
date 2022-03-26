@@ -39,6 +39,12 @@ private slots:
 
     void on_actionLoad_Instruction_List_triggered();
 
+    void on_actionEdit_Script_triggered();
+
+    void on_actionCreate_Script_triggered();
+
+    void on_actionLoad_Script_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -54,14 +60,17 @@ private:
     QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit>();
     QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit>();
     QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit>();
-    //QList<Instruction>* mInstructionList = new QList<Instruction>();
+    QList<ScriptInstruction>* mScriptInstructionList = new QList<ScriptInstruction>();
+    QList<Instruction>* mInstructionList = new QList<Instruction>();
 
     void populateFunctionalUnitReservationTable();
     void populateCommonDataBusAndRegisterTable();
     void populateMemoryReservationTable();
+    void populateInstructionTable();
 
 
     void initializeWindow();
     void loadArchitecture(QString filename);
+    void loadScript(QString filename);
 };
 #endif // MAINWINDOW_H

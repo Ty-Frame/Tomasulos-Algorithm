@@ -323,9 +323,18 @@
     <addaction name="actionEdit_Instruction_List"/>
     <addaction name="actionLoad_Instruction_List"/>
    </widget>
+   <widget class="QMenu" name="menuScript">
+    <property name="title">
+     <string>Script</string>
+    </property>
+    <addaction name="actionCreate_Script"/>
+    <addaction name="actionEdit_Script"/>
+    <addaction name="actionLoad_Script"/>
+   </widget>
    <addaction name="menuApplication"/>
    <addaction name="menuArchitecture"/>
    <addaction name="menuInstruction_List"/>
+   <addaction name="menuScript"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionClose_Application">
@@ -359,6 +368,21 @@
    </property>
   </action>
   <action name="actionLoad_Instruction_List">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
+  <action name="actionCreate_Script">
+   <property name="text">
+    <string>Create</string>
+   </property>
+  </action>
+  <action name="actionEdit_Script">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionLoad_Script">
    <property name="text">
     <string>Load</string>
    </property>
