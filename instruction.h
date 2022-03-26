@@ -13,6 +13,32 @@ struct Instruction{
     MemoryOptions mMemoryOptions = MemoryOptions::None;
 };
 
+struct ScriptInstruction{
+    Instruction mInstruction;
+    QString mInstructionName;
+    QString mDestinationRegister;
+    QString mSourceOneRegister;
+    QString mSourceTwoRegister;
+    int mIssueClockCycle = -1;
+    int mExecutionCompletionClockCycle = -1;
+    int mWriteResultClockCycle = -1;
+};
+
+inline ScriptInstruction StringToScriptInstruction(QString scrInstString){
+    QStringList fields = scrInstString.split(QRegularExpression("\\s+"));
+    ScriptInstruction returnScrInst;
+
+    if(fields.length() != 4){
+        throw QString("Expected format: INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 SOURCE_REGISTER_2\n\t\tOR INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 #IMMEDIATE_VALUE\nInvalid input: " + scrInstString);
+    }
+
+    returnScrInst.mInstructionName = fields[0];
+    returnScrInst.mDestinationRegister = fields[1];
+    returnScrInst.mSourceOneRegister = fields[2];
+    returnScrInst.mSourceTwoRegister = fields[3];
+    return returnScrInst;
+}
+
 inline bool operator==(Instruction a, Instruction b){
     return (a.mName == b.mName &&
             a.mInstructionType == b.mInstructionType &&
