@@ -50,7 +50,7 @@ inline QString ToString(Instruction a){
     returnString += "}";
 
     returnString += ", FunctionalUnitDataType{";
-    for(auto fuDType: AllFunctionalUnitDataType){
+    for(auto fuDType: AllDataType){
         if(fuDType != DataType::None && (a.mDataType & fuDType) == fuDType) {
             returnString += ToString(fuDType);
             returnString += ", ";

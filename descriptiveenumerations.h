@@ -82,7 +82,7 @@ enum class DataType{
     Float = 2
 };
 
-static const DataType AllFunctionalUnitDataType[] = {DataType::None, DataType::Integer, DataType::Float};
+static const DataType AllDataType[] = {DataType::None, DataType::Integer, DataType::Float};
 
 inline DataType operator|(DataType a, DataType b){
     return static_cast<DataType>(static_cast<int>(a) | static_cast<int>(b));
@@ -102,7 +102,7 @@ inline const QString ToString(DataType a){
 }
 
 inline DataType StringToDataType(QString a){
-    for(auto fuDType : AllFunctionalUnitDataType){
+    for(auto fuDType : AllDataType){
         if(ToString(fuDType) == a) return fuDType;
     }
     throw QString("[Unknown FunctionalUnitDataType]");

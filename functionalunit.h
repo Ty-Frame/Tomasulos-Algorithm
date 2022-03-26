@@ -30,7 +30,7 @@ inline bool IsOfFunctionalUnitType(FunctionalUnit* fu, FunctionalUnitType fuType
     return (fu->mFunctionalUnitType & fuType) == fuType;
 };
 
-inline bool IsOfFunctionalUnitDataType(FunctionalUnit* fu, DataType dType){
+inline bool IsOfDataType(FunctionalUnit* fu, DataType dType){
     return (fu->mDataType & dType) == dType;
 };
 
@@ -58,10 +58,10 @@ inline QString ToString(FunctionalUnit a){
     }
     returnString += "}";
 
-    returnString += ", FunctionalUnitDataType{";
-    for(auto fuDType: AllFunctionalUnitDataType){
-        if(fuDType != DataType::None && (a.mFunctionalUnitDataType & fuDType) == fuDType) {
-            returnString += ToString(fuDType);
+    returnString += ", DataType{";
+    for(auto dType: AllDataType){
+        if(dType != DataType::None && (a.mDataType & dType) == dType) {
+            returnString += ToString(dType);
             returnString += ", ";
         }
     }
@@ -120,12 +120,12 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto fuDType : match.captured(5).split(", ")){
-        if(fuDType.isEmpty()) continue;
+    for(auto dType : match.captured(5).split(", ")){
+        if(dType.isEmpty()) continue;
         try {
-            fu.mFunctionalUnitDataType = fu.mFunctionalUnitDataType | StringToDataType(fuDType);
+            fu.mDataType = fu.mDataType | StringToDataType(dType);
         }  catch (QString e) {
-            throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+fuDType);
+            throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+dType);
         }
     }
 
