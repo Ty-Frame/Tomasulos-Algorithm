@@ -39,6 +39,9 @@ void MainWindow::initializeWindow()
     if(!QDir(ARCHITECTURE_FILES_DIRECTORY_PATH).exists()){
         QDir().mkdir(ARCHITECTURE_FILES_DIRECTORY_PATH);
     }
+    if(!QDir(INSTRUCTION_LIST_FILES_DIRECTORY_PATH).exists()){
+        QDir().mkdir(INSTRUCTION_LIST_FILES_DIRECTORY_PATH);
+    }
 
     // Initialize status bar
     mStatusBarWidget = new QWidget(this);
@@ -319,3 +322,25 @@ void MainWindow::on_actionEdit_Architecture_triggered()
     ArchitectureFileEditorDialog dlg(this, &filename);
     dlg.exec();
 }
+
+void MainWindow::on_actionCreate_Instruction_List_triggered()
+{
+    InstructionListFileEditorDialog dlg(this, nullptr);
+    dlg.exec();
+}
+
+
+void MainWindow::on_actionEdit_Instruction_List_triggered()
+{
+    QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
+    if(filename.isEmpty()) return;
+    InstructionListFileEditorDialog dlg(this, &filename);
+    dlg.exec();
+}
+
+
+void MainWindow::on_actionLoad_Instruction_List_triggered()
+{
+
+}
+

@@ -11,6 +11,8 @@ CONFIG += c++11
 SOURCES += \
     architecturefileeditordialog.cpp \
     architectureitemeditordialog.cpp \
+    instructioneditordialog.cpp \
+    instructionlistfileeditordialog.cpp \
     main.cpp \
     mainwindow.cpp
 
@@ -21,11 +23,15 @@ HEADERS += \
     descriptiveenumerations.h \
     functionalunit.h \
     instruction.h \
+    instructioneditordialog.h \
+    instructionlistfileeditordialog.h \
     mainwindow.h
 
 FORMS += \
     architecturefileeditordialog.ui \
     architectureitemeditordialog.ui \
+    instructioneditordialog.ui \
+    instructionlistfileeditordialog.ui \
     mainwindow.ui
 
 # Default rules for deployment.

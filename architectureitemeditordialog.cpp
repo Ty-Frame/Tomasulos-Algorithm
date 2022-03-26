@@ -15,7 +15,7 @@ ArchitectureItemEditorDialog::ArchitectureItemEditorDialog(QWidget *parent, Func
         ui->latencySpinBox->setValue(fuPointer->mLatency);
         ui->functionalUnitTypeComboBox->setCurrentText(ToString(fuPointer->mFunctionalUnitType));
 
-        for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
+        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
             if(IsOfDataType(fuPointer, StringToDataType(cb->text()))) cb->setChecked(true);
         }
 
@@ -41,9 +41,9 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
     returnFU.mFunctionalUnitCount = ui->countSpinBox->value();
     returnFU.mLatency = ui->latencySpinBox->value();
     returnFU.mFunctionalUnitType = StringToFunctionalUnitType(ui->functionalUnitTypeComboBox->currentText());
-    //for(auto obj : ui->functionalUnitDataTypeGroupBox->layout()->children()){
-    if(ui->functionalUnitDataTypeGroupBox->isEnabled()){
-        for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
+    //for(auto obj : ui->dataTypeGroupBox->layout()->children()){
+    if(ui->dataTypeGroupBox->isEnabled()){
+        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
                 //qDebug()<<"Bitwise OR: "<<cb->text();
                 returnFU.mDataType = returnFU.mDataType | StringToDataType(cb->text());
@@ -81,11 +81,11 @@ void ArchitectureItemEditorDialog::initializeDialog()
         ui->functionalUnitTypeComboBox->addItem(ToString(fuType));
     }
 
-    QVBoxLayout* functionalUnitDataTypeGroupBoxLayout = new QVBoxLayout();
-    ui->functionalUnitDataTypeGroupBox->setLayout(functionalUnitDataTypeGroupBoxLayout);
+    QVBoxLayout* dataTypeGroupBoxLayout = new QVBoxLayout();
+    ui->dataTypeGroupBox->setLayout(dataTypeGroupBoxLayout);
     for(auto fuDType: AllDataType){
         if(fuDType != DataType::None){
-            functionalUnitDataTypeGroupBoxLayout->addWidget(new QCheckBox(ToString(fuDType)));
+            dataTypeGroupBoxLayout->addWidget(new QCheckBox(ToString(fuDType)));
         }
     }
 
@@ -111,31 +111,31 @@ void ArchitectureItemEditorDialog::on_functionalUnitTypeComboBox_currentTextChan
     FunctionalUnitType fuTypeSelected = StringToFunctionalUnitType(arg1);
     switch (fuTypeSelected) {
     case FunctionalUnitType::None:{
-        ui->functionalUnitDataTypeGroupBox->setEnabled(false);
+        ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
         break;
     }
     case FunctionalUnitType::Arithmetic:{
-        ui->functionalUnitDataTypeGroupBox->setEnabled(true);
+        ui->dataTypeGroupBox->setEnabled(true);
         ui->arithmeticOptionsGroupBox->setEnabled(true);
         ui->memoryOptionsGroupBox->setEnabled(false);
         break;
     }
     case FunctionalUnitType::Memory:{
-        ui->functionalUnitDataTypeGroupBox->setEnabled(false);
+        ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(true);
         break;
     }
     case FunctionalUnitType::CommonDataBus:{
-        ui->functionalUnitDataTypeGroupBox->setEnabled(false);
+        ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
         break;
     }
     case FunctionalUnitType::Register:{
-        ui->functionalUnitDataTypeGroupBox->setEnabled(false);
+        ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
         break;
@@ -160,9 +160,9 @@ void ArchitectureItemEditorDialog::on_buttonBox_accepted()
     }
 
     bool noneChecked = false;
-    if(ui->functionalUnitDataTypeGroupBox->isEnabled()){
+    if(ui->dataTypeGroupBox->isEnabled()){
         noneChecked = true;
-        for(auto cb : ui->functionalUnitDataTypeGroupBox->findChildren<QCheckBox *>()){
+        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
                 noneChecked = false;
             }

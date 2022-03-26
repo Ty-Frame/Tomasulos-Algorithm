@@ -27,7 +27,7 @@ inline const QString ToString(InstructionType a){
         case InstructionType::None: return QString("None");
         case InstructionType::Arithmetic: return QString("Arithmetic");
         case InstructionType::Memory: return QString("Memory");
-        default: throw QString("[Unknown FuncitonalUnitType]");
+        default: throw QString("[Unknown InstructionType]");
     }
 }
 
@@ -35,7 +35,7 @@ inline InstructionType StringToInstructionType(QString a){
     for(auto iType : AllInstructionType){
         if(ToString(iType) == a) return iType;
     }
-    throw QString("[Unknown FunctionalUnitType]");
+    throw QString("[Unknown InstructionType]");
 }
 
 // FunctionalUnitType start
@@ -75,7 +75,7 @@ inline FunctionalUnitType StringToFunctionalUnitType(QString a){
     throw QString("[Unknown FunctionalUnitType]");
 }
 
-// FunctionalUnitDataType start
+// DataType start
 enum class DataType{
     None = 0,
     Integer = 1,
@@ -97,7 +97,7 @@ inline const QString ToString(DataType a){
         case DataType::None: return QString("None");
         case DataType::Integer: return QString("Integer");
         case DataType::Float: return QString("Float");
-        default: throw QString("[Unknown FunctionalUnitDataType]");
+        default: throw QString("[Unknown DataType]");
     }
 }
 
@@ -105,7 +105,7 @@ inline DataType StringToDataType(QString a){
     for(auto fuDType : AllDataType){
         if(ToString(fuDType) == a) return fuDType;
     }
-    throw QString("[Unknown FunctionalUnitDataType]");
+    throw QString("[Unknown DataType]");
 }
 
 // MemoryOptions start

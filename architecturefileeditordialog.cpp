@@ -11,13 +11,15 @@ ArchitectureFileEditorDialog::ArchitectureFileEditorDialog(QWidget *parent, QStr
     ui->architectureItemsTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
 
     ui->addItemPushButton->setToolTip("Add Architecture Item");
+    ui->editItemPushButton->setToolTip("Edit Architecture Item");
     ui->removeItemPushButton->setToolTip("Remove Architecture Item");
 
     if(architectureFileName != nullptr){
         ui->architectureNameLineEdit->setText(architectureFileName->split("/").last().split(".").first());
-        this->readInFile(architectureFileName);
+        mFunctionalUnitList = readInFunctionalUnitFile(architectureFileName);
     }
     else{
+        mFunctionalUnitList = new QList<FunctionalUnit>();
         try {
             FunctionalUnit cdb = StringToFunctionalUnit("Common Data Bus: Count{1}, Latency{0}, FunctionalUnitType{Common Data Bus}, FunctionalUnitDataType{}, ArithmeticOptions{}, MemoryOptions{}");
             mFunctionalUnitList->append(cdb);
@@ -125,27 +127,6 @@ void ArchitectureFileEditorDialog::populateArchitectureItemTable()
         fu = this->mFunctionalUnitList->at(i);
         model->setData(model->index(i,0),ToString(fu));
     }
-}
-
-void ArchitectureFileEditorDialog::readInFile(QString *filename)
-{
-    QFile inFile(*filename);
-    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        QMessageBox::critical(this, QString::fromStdString("Error Opening Architecture File"), QString::fromStdString(std::string("Could not open file:\n")) + *filename);
-        return;
-    }
-
-    QTextStream inFileStream(&inFile);
-    while(!inFileStream.atEnd()){
-        QString fuString = inFileStream.readLine();
-        try {
-            FunctionalUnit fu = StringToFunctionalUnit(fuString);
-            mFunctionalUnitList->append(fu);
-        }  catch (QString e) {
-            QMessageBox::critical(this, "Error Reading In Architecture Item", e);
-        }
-    }
-    inFile.close();
 }
 
 void ArchitectureFileEditorDialog::on_editItemPushButton_clicked()

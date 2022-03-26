@@ -7,5 +7,6 @@
 #define VERSION ("v"+std::string(MAJOR_NUMBER)+"."+std::string(MINOR_NUMBER)+"."+std::string(PATCH_NUMBER))
 
 #define ARCHITECTURE_FILES_DIRECTORY_PATH qApp->applicationDirPath()+"/ArchitectureFiles/"
+#define INSTRUCTION_LIST_FILES_DIRECTORY_PATH qApp->applicationDirPath()+"/InstructionListFiles/"
 
 #endif // COMMON_H
