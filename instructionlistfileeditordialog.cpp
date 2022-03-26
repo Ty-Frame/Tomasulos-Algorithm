@@ -104,7 +104,7 @@ void InstructionListFileEditorDialog::on_addInstructionPushButton_clicked()
 {
     InstructionEditorDialog dlg(this);
     if(dlg.exec()){
-        qDebug()<<ToString(dlg.returnInstruction());
+        //qDebug()<<ToString(dlg.returnInstruction());
         mInstructionList->append(dlg.returnInstruction());
         this->populateInstructionTable();
     }
