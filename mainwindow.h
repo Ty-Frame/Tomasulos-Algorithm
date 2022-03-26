@@ -12,6 +12,7 @@
 #include <QDir>
 #include <QCheckBox>
 #include "architecturefileeditordialog.h"
+#include "instructionlistfileeditordialog.h"
 
 QT_BEGIN_NAMESPACE
 namespace Ui { class MainWindow; }
@@ -31,6 +32,12 @@ private slots:
     void on_actionLoad_Architecture_triggered();
 
     void on_actionEdit_Architecture_triggered();
+
+    void on_actionCreate_Instruction_List_triggered();
+
+    void on_actionEdit_Instruction_List_triggered();
+
+    void on_actionLoad_Instruction_List_triggered();
 
 private:
     Ui::MainWindow *ui;

@@ -32,9 +32,8 @@ private slots:
 
 private:
     Ui::ArchitectureFileEditorDialog *ui;
-    QList<FunctionalUnit>* mFunctionalUnitList = new QList<FunctionalUnit>();
+    QList<FunctionalUnit>* mFunctionalUnitList = nullptr;
     void populateArchitectureItemTable();
-    void readInFile(QString *filename);
 };
 
 #endif // ARCHITECTUREFILEEDITORDIALOG_H

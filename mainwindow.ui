@@ -315,8 +315,17 @@
     <addaction name="actionEdit_Architecture"/>
     <addaction name="actionLoad_Architecture"/>
    </widget>
+   <widget class="QMenu" name="menuInstruction_List">
+    <property name="title">
+     <string>Instruction List</string>
+    </property>
+    <addaction name="actionCreate_Instruction_List"/>
+    <addaction name="actionEdit_Instruction_List"/>
+    <addaction name="actionLoad_Instruction_List"/>
+   </widget>
    <addaction name="menuApplication"/>
    <addaction name="menuArchitecture"/>
+   <addaction name="menuInstruction_List"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionClose_Application">
@@ -337,6 +346,21 @@
   <action name="actionEdit_Architecture">
    <property name="text">
     <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionCreate_Instruction_List">
+   <property name="text">
+    <string>Create</string>
+   </property>
+  </action>
+  <action name="actionEdit_Instruction_List">
+   <property name="text">
+    <string>Edit</string>
+   </property>
+  </action>
+  <action name="actionLoad_Instruction_List">
+   <property name="text">
+    <string>Load</string>
    </property>
   </action>
  </widget>

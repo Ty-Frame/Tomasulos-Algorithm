@@ -1,13 +1,13 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <ui version="4.0">
- <class>ArchitectureItemEditorDialog</class>
- <widget class="QDialog" name="ArchitectureItemEditorDialog">
+ <class>InstructionEditorDialog</class>
+ <widget class="QDialog" name="InstructionEditorDialog">
   <property name="geometry">
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>256</width>
-    <height>334</height>
+    <width>184</width>
+    <height>206</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -29,46 +29,7 @@
     </layout>
    </item>
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_3">
-     <item>
-      <widget class="QLabel" name="label_2">
-       <property name="text">
-        <string>Count:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="countSpinBox">
-       <property name="minimum">
-        <number>1</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QLabel" name="label_3">
-       <property name="text">
-        <string>Latency:</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QSpinBox" name="latencySpinBox">
-       <property name="minimum">
-        <number>0</number>
-       </property>
-       <property name="value">
-        <number>0</number>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-   <item>
-    <widget class="QComboBox" name="functionalUnitTypeComboBox"/>
+    <widget class="QComboBox" name="instructionTypeComboBox"/>
    </item>
    <item>
     <widget class="QGroupBox" name="dataTypeGroupBox">
@@ -79,9 +40,6 @@
    </item>
    <item>
     <widget class="QGroupBox" name="arithmeticOptionsGroupBox">
-     <property name="enabled">
-      <bool>true</bool>
-     </property>
      <property name="title">
       <string>Arithmetic Options:</string>
      </property>
@@ -111,7 +69,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>accepted()</signal>
-   <receiver>ArchitectureItemEditorDialog</receiver>
+   <receiver>InstructionEditorDialog</receiver>
    <slot>accept()</slot>
    <hints>
     <hint type="sourcelabel">
@@ -127,7 +85,7 @@
   <connection>
    <sender>buttonBox</sender>
    <signal>rejected()</signal>
-   <receiver>ArchitectureItemEditorDialog</receiver>
+   <receiver>InstructionEditorDialog</receiver>
    <slot>reject()</slot>
    <hints>
     <hint type="sourcelabel">

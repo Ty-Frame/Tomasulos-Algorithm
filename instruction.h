@@ -1,6 +1,8 @@
 #ifndef INSTRUCTION_H
 #define INSTRUCTION_H
 
+#include <QMessageBox>
+#include <QFile>
 #include "descriptiveenumerations.h"
 
 struct Instruction{
@@ -49,7 +51,7 @@ inline QString ToString(Instruction a){
     }
     returnString += "}";
 
-    returnString += ", FunctionalUnitDataType{";
+    returnString += ", DataType{";
     for(auto fuDType: AllDataType){
         if(fuDType != DataType::None && (a.mDataType & fuDType) == fuDType) {
             returnString += ToString(fuDType);
@@ -88,9 +90,9 @@ inline QString ToString(Instruction a){
     return returnString;
 }
 
-inline Instruction StringToFunctionalUnit(QString strFU){
+inline Instruction StringToInstruction(QString strFU){
     Instruction isnt;
-    QString expression("(.*): InstructionType{(.*)}, FunctionalUnitDataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
+    QString expression("(.*): InstructionType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
     QRegularExpression re(expression, QRegularExpression::DotMatchesEverythingOption);
     QRegularExpressionMatch match = re.match(strFU);
 
@@ -100,7 +102,7 @@ inline Instruction StringToFunctionalUnit(QString strFU){
 
     isnt.mName = match.captured(1);
 
-    for(auto iType : match.captured(4).split(", ")){
+    for(auto iType : match.captured(2).split(", ")){
         if(iType.isEmpty()) continue;
         try {
             isnt.mInstructionType = isnt.mInstructionType | StringToInstructionType(iType);
@@ -109,7 +111,7 @@ inline Instruction StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto dType : match.captured(5).split(", ")){
+    for(auto dType : match.captured(3).split(", ")){
         if(dType.isEmpty()) continue;
         try {
             isnt.mDataType = isnt.mDataType | StringToDataType(dType);
@@ -118,7 +120,7 @@ inline Instruction StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto arithOpt : match.captured(6).split(", ")){
+    for(auto arithOpt : match.captured(4).split(", ")){
         if(arithOpt.isEmpty()) continue;
         try {
             isnt.mArithmeticOptions = isnt.mArithmeticOptions | StringToArithmeticOptions(arithOpt);
@@ -127,7 +129,7 @@ inline Instruction StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto memOpt : match.captured(7).split(", ")){
+    for(auto memOpt : match.captured(5).split(", ")){
         if(memOpt.isEmpty()) continue;
         try {
             isnt.mMemoryOptions = isnt.mMemoryOptions | StringToMemoryOptions(memOpt);
@@ -137,6 +139,28 @@ inline Instruction StringToFunctionalUnit(QString strFU){
     }
 
     return isnt;
+}
+
+inline QList<Instruction>* readInInstructionListFile(QString *filename){
+    QFile inFile(*filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(NULL, QString::fromStdString("Error Opening Architecture File"), QString::fromStdString(std::string("Could not open file:\n")) + *filename);
+        return nullptr;
+    }
+
+    QTextStream inFileStream(&inFile);
+    QList<Instruction>* list = new QList<Instruction>();
+    while(!inFileStream.atEnd()){
+        QString iString = inFileStream.readLine();
+        try {
+            Instruction inst = StringToInstruction(iString);
+            list->append(inst);
+        }  catch (QString e) {
+            QMessageBox::critical(NULL, "Error Reading In Architecture Item", e);
+        }
+    }
+    inFile.close();
+    return list;
 }
 
 #endif // INSTRUCTION_H

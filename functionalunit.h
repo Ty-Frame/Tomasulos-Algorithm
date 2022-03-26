@@ -1,6 +1,8 @@
 #ifndef FUNCTIONALUNIT_H
 #define FUNCTIONALUNIT_H
 
+#include <QFile>
+#include <QMessageBox>
 #include "descriptiveenumerations.h"
 
 using namespace std;
@@ -99,7 +101,7 @@ inline QString ToString(FunctionalUnit a){
 
 inline FunctionalUnit StringToFunctionalUnit(QString strFU){
     FunctionalUnit fu;
-    QString expression("(.*): Count{(\\d+)}, Latency{(\\d+)}, FunctionalUnitType{(.*)}, FunctionalUnitDataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
+    QString expression("(.*): Count{(\\d+)}, Latency{(\\d+)}, FunctionalUnitType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
     QRegularExpression re(expression, QRegularExpression::DotMatchesEverythingOption);
     QRegularExpressionMatch match = re.match(strFU);
 
@@ -176,5 +178,27 @@ struct CommonDataBusFunctionalUnit{
     bool mBusy = false;
     QString mFunctionalUnitWithClaim = "";
 };
+
+inline QList<FunctionalUnit>* readInFunctionalUnitFile(QString *filename){
+    QFile inFile(*filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(NULL, QString::fromStdString("Error Opening Architecture File"), QString::fromStdString(std::string("Could not open file:\n")) + *filename);
+        return nullptr;
+    }
+
+    QTextStream inFileStream(&inFile);
+    QList<FunctionalUnit>* list = new QList<FunctionalUnit>();
+    while(!inFileStream.atEnd()){
+        QString fuString = inFileStream.readLine();
+        try {
+            FunctionalUnit fu = StringToFunctionalUnit(fuString);
+            list->append(fu);
+        }  catch (QString e) {
+            QMessageBox::critical(NULL, "Error Reading In Architecture Item", e);
+        }
+    }
+    inFile.close();
+    return list;
+}
 
 #endif // FUNCTIONALUNIT_H
