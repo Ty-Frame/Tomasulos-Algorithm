@@ -14,7 +14,8 @@ SOURCES += \
     instructioneditordialog.cpp \
     instructionlistfileeditordialog.cpp \
     main.cpp \
-    mainwindow.cpp
+    mainwindow.cpp \
+    tomasuloalgorithm.cpp
 
 HEADERS += \
     architecturefileeditordialog.h \
@@ -25,7 +26,8 @@ HEADERS += \
     instruction.h \
     instructioneditordialog.h \
     instructionlistfileeditordialog.h \
-    mainwindow.h
+    mainwindow.h \
+    tomasuloalgorithm.h
 
 FORMS += \
     architecturefileeditordialog.ui \
