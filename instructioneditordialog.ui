@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>184</width>
-    <height>206</height>
+    <height>242</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -49,6 +49,13 @@
     <widget class="QGroupBox" name="memoryOptionsGroupBox">
      <property name="title">
       <string>Memory Options:</string>
+     </property>
+    </widget>
+   </item>
+   <item>
+    <widget class="QGroupBox" name="pipelineStagesGroupBox">
+     <property name="title">
+      <string>Pipeline Stages:</string>
      </property>
     </widget>
    </item>

@@ -180,4 +180,41 @@ inline ArithmeticOptions StringToArithmeticOptions(QString a){
     throw QString("[Unknown ArithmeticOptions]");
 }
 
+// PipelineStages start
+enum class PipelineStages{
+    None = 0,
+    Issue = 1,
+    Execution = 2,
+    Writeback = 4,
+    Commit = 8
+};
+
+static const PipelineStages AllPipelineStages[] = {PipelineStages::None , PipelineStages::Issue, PipelineStages::Execution, PipelineStages::Writeback, PipelineStages::Commit};
+
+inline PipelineStages operator|(PipelineStages a, PipelineStages b){
+    return static_cast<PipelineStages>(static_cast<int>(a) | static_cast<int>(b));
+}
+
+inline PipelineStages operator&(PipelineStages a, PipelineStages b){
+    return static_cast<PipelineStages>(static_cast<int>(a) & static_cast<int>(b));
+}
+
+inline const QString ToString(PipelineStages a){
+    switch(a){
+        case PipelineStages::None: return QString("None");
+        case PipelineStages::Issue: return QString("Issue");
+        case PipelineStages::Execution: return QString("Execution");
+        case PipelineStages::Writeback: return QString("Writeback");
+        case PipelineStages::Commit: return QString("Commit");
+        default: throw QString("[Unknown PipelineStages]");
+    }
+}
+
+inline PipelineStages StringToPipelineStages(QString a){
+    for(auto stage : AllPipelineStages){
+        if(ToString(stage) == a) return stage;
+    }
+    throw QString("[Unknown PipelineStages]");
+}
+
 #endif // DESCRIPTIVEENUMERATIONS_H
