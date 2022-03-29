@@ -144,7 +144,8 @@ void ArchitectureItemEditorDialog::on_functionalUnitTypeComboBox_currentTextChan
     }
 }
 
-void ArchitectureItemEditorDialog::on_buttonBox_accepted()
+
+void ArchitectureItemEditorDialog::on_okPushButton_clicked()
 {
     if(ui->nameLineEdit->text().isEmpty()){
        QMessageBox::critical(this,"Architecture Item Creation Error","The name line edit must have content.");
@@ -156,6 +157,11 @@ void ArchitectureItemEditorDialog::on_buttonBox_accepted()
         QString msg = "Invalid Functional Unit Type:\n";
         msg.append(QString::fromStdString(e));
         QMessageBox::critical(this,"Architecture Item Creation Error", msg);
+        return;
+    }
+
+    if(ui->functionalUnitTypeComboBox->currentText() == ToString(FunctionalUnitType::None)){
+        QMessageBox::critical(this,"Architecture Item Creation Error", "Functional unit cannot be set to "+ToString(FunctionalUnitType::None)+".");
         return;
     }
 
@@ -202,7 +208,8 @@ void ArchitectureItemEditorDialog::on_buttonBox_accepted()
     QDialog::accept();
 }
 
-void ArchitectureItemEditorDialog::on_buttonBox_rejected()
+
+void ArchitectureItemEditorDialog::on_cancelPushButton_clicked()
 {
     QDialog::reject();
 }

@@ -151,8 +151,27 @@ void InstructionListFileEditorDialog::on_removeInstructionPushButton_clicked()
     }
 }
 
+void InstructionListFileEditorDialog::populateInstructionTable()
+{
+    auto model = ui->instrucitonTableWidget->model();
+    int len = model->rowCount();
+    for (int i = 0; i<len; i++) {
+        model->removeRow(0);
+    }
 
-void InstructionListFileEditorDialog::on_buttonBox_accepted()
+    int listLen = this->mInstructionList->length();
+
+    ui->instrucitonTableWidget->setColumnCount(1);
+    ui->instrucitonTableWidget->setRowCount(listLen);
+
+    Instruction fu;
+    for (int i = 0; i<listLen; i++) {
+        fu = this->mInstructionList->at(i);
+        model->setData(model->index(i,0),ToString(fu));
+    }
+}
+
+void InstructionListFileEditorDialog::on_okPushButton_clicked()
 {
     if(ui->instructionListNameLineEdit->text().isEmpty()){
         QMessageBox::critical(this, QString::fromStdString("Error Saving Instruction List File"), "Architecture must be given a name.");
@@ -180,31 +199,12 @@ void InstructionListFileEditorDialog::on_buttonBox_accepted()
         outFileStream << ToString(fu) << "\n";
     }
     outFile.close();
+
+    QDialog::accept();
 }
 
-
-void InstructionListFileEditorDialog::on_buttonBox_rejected()
+void InstructionListFileEditorDialog::on_cancelPushButton_clicked()
 {
-
-}
-
-void InstructionListFileEditorDialog::populateInstructionTable()
-{
-    auto model = ui->instrucitonTableWidget->model();
-    int len = model->rowCount();
-    for (int i = 0; i<len; i++) {
-        model->removeRow(0);
-    }
-
-    int listLen = this->mInstructionList->length();
-
-    ui->instrucitonTableWidget->setColumnCount(1);
-    ui->instrucitonTableWidget->setRowCount(listLen);
-
-    Instruction fu;
-    for (int i = 0; i<listLen; i++) {
-        fu = this->mInstructionList->at(i);
-        model->setData(model->index(i,0),ToString(fu));
-    }
+    QDialog::reject();
 }
 

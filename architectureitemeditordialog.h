@@ -25,9 +25,9 @@ public:
 private slots:
     void on_functionalUnitTypeComboBox_currentTextChanged(const QString &arg1);
 
-    void on_buttonBox_accepted();
+    void on_okPushButton_clicked();
 
-    void on_buttonBox_rejected();
+    void on_cancelPushButton_clicked();
 
 private:
     Ui::ArchitectureItemEditorDialog *ui;
