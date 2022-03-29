@@ -12,18 +12,9 @@ InstructionEditorDialog::InstructionEditorDialog(QWidget *parent, Instruction *i
     if(instruction){
         ui->nameLineEdit->setText(instruction->mName);
         ui->instructionTypeComboBox->setCurrentText(ToString(instruction->mInstructionType));
-
-        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
-            if(IsOfDataType(instruction, StringToDataType(cb->text()))) cb->setChecked(true);
-        }
-
-        for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
-            if(IsOfArithmeticOptions(instruction, StringToArithmeticOptions(cb->text()))) cb->setChecked(true);
-        }
-
-        for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
-            if(IsOfMemoryOptions(instruction, StringToMemoryOptions(cb->text()))) cb->setChecked(true);
-        }
+        ui->dataTypeComboBox->setCurrentText(ToString(instruction->mDataType));
+        ui->arithmeticOptionsComboBox->setCurrentText(ToString(instruction->mArithmeticOptions));
+        ui->memoryOptionsComboBox->setCurrentText(ToString(instruction->mMemoryOptions));
 
         for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
             if(IsOfPipelineStages(instruction, StringToPipelineStages(cb->text()))) cb->setChecked(true);
@@ -41,27 +32,20 @@ Instruction InstructionEditorDialog::returnInstruction()
     Instruction returnI;
     returnI.mName = ui->nameLineEdit->text();
     returnI.mInstructionType = StringToInstructionType(ui->instructionTypeComboBox->currentText());
-    if(ui->dataTypeGroupBox->isEnabled()){
-        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
-                returnI.mDataType = returnI.mDataType | StringToDataType(cb->text());
-            }
-        }
+    if(ui->dataTypeComboBox->isEnabled()){
+        returnI.mDataType = returnI.mDataType | StringToDataType(ui->dataTypeComboBox->currentText());
     }
-    if(ui->arithmeticOptionsGroupBox->isEnabled()){
-        for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
-                returnI.mArithmeticOptions = returnI.mArithmeticOptions | StringToArithmeticOptions(cb->text());
-            }
-        }
+    if(ui->arithmeticOptionsComboBox->isEnabled()){
+        returnI.mArithmeticOptions = returnI.mArithmeticOptions | StringToArithmeticOptions(ui->arithmeticOptionsComboBox->currentText());
     }
-    if(ui->memoryOptionsGroupBox->isEnabled()){
-        for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
+    if(ui->memoryOptionsComboBox->isEnabled()){
+        returnI.mMemoryOptions = returnI.mMemoryOptions | StringToMemoryOptions(ui->memoryOptionsComboBox->currentText());
+    }
+    if(ui->pipelineStagesGroupBox->isEnabled()){
+        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
                 //qDebug()<<"Bitwise OR: "<<cb->text();
-                returnI.mMemoryOptions = returnI.mMemoryOptions | StringToMemoryOptions(cb->text());
+                returnI.mPipelineStages = returnI.mPipelineStages | StringToPipelineStages(cb->text());
             }
         }
     }
@@ -76,27 +60,21 @@ void InstructionEditorDialog::initializeDialog()
         ui->instructionTypeComboBox->addItem(ToString(iType));
     }
 
-    QVBoxLayout* dataTypeGroupBoxLayout = new QVBoxLayout();
-    ui->dataTypeGroupBox->setLayout(dataTypeGroupBoxLayout);
     for(auto dType: AllDataType){
         if(dType != DataType::None){
-            dataTypeGroupBoxLayout->addWidget(new QCheckBox(ToString(dType)));
+            ui->dataTypeComboBox->addItem(ToString(dType));
         }
     }
 
-    QVBoxLayout* arithmeticOptionsGroupBoxLayout = new QVBoxLayout();
-    ui->arithmeticOptionsGroupBox->setLayout(arithmeticOptionsGroupBoxLayout);
     for(auto arithOpt: AllArithmeticOptions){
         if(arithOpt != ArithmeticOptions::None){
-            arithmeticOptionsGroupBoxLayout->addWidget(new QCheckBox(ToString(arithOpt)));
+            ui->arithmeticOptionsComboBox->addItem(ToString(arithOpt));
         }
     }
 
-    QVBoxLayout* memoryOptionsGroupBoxLayout = new QVBoxLayout();
-    ui->memoryOptionsGroupBox->setLayout(memoryOptionsGroupBoxLayout);
     for(auto memOpt: AllMemoryOptions){
         if(memOpt != MemoryOptions::None){
-            memoryOptionsGroupBoxLayout->addWidget(new QCheckBox(ToString(memOpt)));
+            ui->memoryOptionsComboBox->addItem(ToString(memOpt));
         }
     }
 
@@ -114,23 +92,23 @@ void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(cons
     InstructionType iTypeSelected = StringToInstructionType(arg1);
     switch (iTypeSelected) {
     case InstructionType::None:{
-        ui->dataTypeGroupBox->setEnabled(false);
-        ui->arithmeticOptionsGroupBox->setEnabled(false);
-        ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->dataTypeComboBox->setEnabled(false);
+        ui->arithmeticOptionsComboBox->setEnabled(false);
+        ui->memoryOptionsComboBox->setEnabled(false);
         ui->pipelineStagesGroupBox->setEnabled(false);
         break;
     }
     case InstructionType::Arithmetic:{
-        ui->dataTypeGroupBox->setEnabled(true);
-        ui->arithmeticOptionsGroupBox->setEnabled(true);
-        ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->dataTypeComboBox->setEnabled(true);
+        ui->arithmeticOptionsComboBox->setEnabled(true);
+        ui->memoryOptionsComboBox->setEnabled(false);
         ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
     case InstructionType::Memory:{
-        ui->dataTypeGroupBox->setEnabled(false);
-        ui->arithmeticOptionsGroupBox->setEnabled(false);
-        ui->memoryOptionsGroupBox->setEnabled(true);
+        ui->dataTypeComboBox->setEnabled(false);
+        ui->arithmeticOptionsComboBox->setEnabled(false);
+        ui->memoryOptionsComboBox->setEnabled(true);
         ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
@@ -161,42 +139,16 @@ void InstructionEditorDialog::on_buttonBox_accepted()
     }
 
     bool noneChecked = false;
-    if(ui->dataTypeGroupBox->isEnabled()){
+    if(ui->pipelineStagesGroupBox->isEnabled()){
         noneChecked = true;
-        for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
+        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
                 noneChecked = false;
             }
         }
     }
     if(noneChecked){
-        QMessageBox::critical(this,"Instruction Creation Error", "Atleast one data type must be selected.");
-        return;
-    }
-
-    if(ui->arithmeticOptionsGroupBox->isEnabled()){
-        noneChecked = true;
-        for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                noneChecked = false;
-            }
-        }
-    }
-    if(noneChecked){
-        QMessageBox::critical(this,"Instruction Creation Error", "Atleast one arithmetic otion must be selected.");
-        return;
-    }
-
-    if(ui->memoryOptionsGroupBox->isEnabled()){
-        noneChecked = true;
-        for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                noneChecked = false;
-            }
-        }
-    }
-    if(noneChecked){
-        QMessageBox::critical(this,"Instruction Creation Error", "Atleast one memory option must be selected.");
+        QMessageBox::critical(this,"Instruction Creation Error", "Atleast one pipeline stage must be selected.");
         return;
     }
 
