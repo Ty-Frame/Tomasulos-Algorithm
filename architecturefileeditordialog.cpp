@@ -21,14 +21,14 @@ ArchitectureFileEditorDialog::ArchitectureFileEditorDialog(QWidget *parent, QStr
     else{
         mFunctionalUnitList = new QList<FunctionalUnit>();
         try {
-            FunctionalUnit cdb = StringToFunctionalUnit("Common Data Bus: Count{1}, Latency{0}, FunctionalUnitType{Common Data Bus}, FunctionalUnitDataType{}, ArithmeticOptions{}, MemoryOptions{}");
+            FunctionalUnit cdb = StringToFunctionalUnit("Common Data Bus: Count{1}, Latency{0}, FunctionalUnitType{Common Data Bus}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
             mFunctionalUnitList->append(cdb);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::CommonDataBus), e);
         }
 
         try {
-            FunctionalUnit registers = StringToFunctionalUnit("R: Count{10}, Latency{0}, FunctionalUnitType{Register}, FunctionalUnitDataType{}, ArithmeticOptions{}, MemoryOptions{}");
+            FunctionalUnit registers = StringToFunctionalUnit("R: Count{10}, Latency{0}, FunctionalUnitType{Register}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
             mFunctionalUnitList->append(registers);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::Register), e);
@@ -74,41 +74,6 @@ void ArchitectureFileEditorDialog::on_addItemPushButton_clicked()
     }
 }
 
-void ArchitectureFileEditorDialog::on_buttonBox_accepted()
-{
-    if(ui->architectureNameLineEdit->text().isEmpty()){
-        QMessageBox::critical(this, QString::fromStdString("Error Saving Architecture File"), "Architecture must be given a name.");
-        return;
-    }
-
-    QString filename = ARCHITECTURE_FILES_DIRECTORY_PATH + ui->architectureNameLineEdit->text() + ".txt";
-
-    if(QFileInfo::exists(filename)){
-        QMessageBox::StandardButton reply = QMessageBox::question(this,"Error Saving Architecture File","Do you wish to overwrite file:\n" + filename);
-        if(reply == QMessageBox::No) return;
-    }
-
-    QFile outFile(filename);
-    if(!outFile.open(QIODevice::WriteOnly | QIODevice::Text)){
-        QMessageBox::critical(this, "Error Saving Architecture File", "Could not open file:\n" + filename);
-        return;
-    }
-    QTextStream outFileStream(&outFile);
-
-    int listLen = mFunctionalUnitList->length();
-    FunctionalUnit fu;
-    for (int i = 0; i<listLen; i++) {
-        fu = mFunctionalUnitList->at(i);
-        outFileStream << ToString(fu) << "\n";
-    }
-    outFile.close();
-}
-
-void ArchitectureFileEditorDialog::on_buttonBox_rejected()
-{
-
-}
-
 void ArchitectureFileEditorDialog::populateArchitectureItemTable()
 {
     auto model = ui->architectureItemsTableWidget->model();
@@ -146,5 +111,44 @@ void ArchitectureFileEditorDialog::on_editItemPushButton_clicked()
         mFunctionalUnitList->insert(beforeIndex, dlg.returnFunctionalUnit());
         this->populateArchitectureItemTable();
     }
+}
+
+
+void ArchitectureFileEditorDialog::on_okPushButton_clicked()
+{
+    if(ui->architectureNameLineEdit->text().isEmpty()){
+        QMessageBox::critical(this, QString::fromStdString("Error Saving Architecture File"), "Architecture must be given a name.");
+        return;
+    }
+
+    QString filename = ARCHITECTURE_FILES_DIRECTORY_PATH + ui->architectureNameLineEdit->text() + ".txt";
+
+    if(QFileInfo::exists(filename)){
+        QMessageBox::StandardButton reply = QMessageBox::question(this,"Error Saving Architecture File","Do you wish to overwrite file:\n" + filename);
+        if(reply == QMessageBox::No) return;
+    }
+
+    QFile outFile(filename);
+    if(!outFile.open(QIODevice::WriteOnly | QIODevice::Text)){
+        QMessageBox::critical(this, "Error Saving Architecture File", "Could not open file:\n" + filename);
+        return;
+    }
+    QTextStream outFileStream(&outFile);
+
+    int listLen = mFunctionalUnitList->length();
+    FunctionalUnit fu;
+    for (int i = 0; i<listLen; i++) {
+        fu = mFunctionalUnitList->at(i);
+        outFileStream << ToString(fu) << "\n";
+    }
+    outFile.close();
+
+    QDialog::accept();
+}
+
+
+void ArchitectureFileEditorDialog::on_cancelPushButton_clicked()
+{
+    QDialog::reject();
 }
 

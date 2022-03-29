@@ -26,9 +26,9 @@ private slots:
 
     void on_removeInstructionPushButton_clicked();
 
-    void on_buttonBox_accepted();
+    void on_okPushButton_clicked();
 
-    void on_buttonBox_rejected();
+    void on_cancelPushButton_clicked();
 
 private:
     Ui::InstructionListFileEditorDialog *ui;

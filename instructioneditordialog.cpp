@@ -116,14 +116,7 @@ void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(cons
     }
 }
 
-
-void InstructionEditorDialog::on_buttonBox_rejected()
-{
-    QDialog::reject();
-}
-
-
-void InstructionEditorDialog::on_buttonBox_accepted()
+void InstructionEditorDialog::on_okPushButton_clicked()
 {
     if(ui->nameLineEdit->text().isEmpty()){
        QMessageBox::critical(this,"Instruction Creation Error","The name line edit must have content.");
@@ -135,6 +128,11 @@ void InstructionEditorDialog::on_buttonBox_accepted()
         QString msg = "Invalid Instruction Type:\n";
         msg.append(QString::fromStdString(e));
         QMessageBox::critical(this,"Instruction Creation Error", msg);
+        return;
+    }
+
+    if(ui->instructionTypeComboBox->currentText() == ToString(InstructionType::None)){
+        QMessageBox::critical(this,"Instruction Creation Error", "Instruction type cannot be set to "+ToString(InstructionType::None)+".");
         return;
     }
 
@@ -153,5 +151,10 @@ void InstructionEditorDialog::on_buttonBox_accepted()
     }
 
     QDialog::accept();
+}
+
+void InstructionEditorDialog::on_cancelPushButton_clicked()
+{
+    QDialog::reject();
 }
 
