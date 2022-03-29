@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>184</width>
-    <height>242</height>
+    <width>583</width>
+    <height>330</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -32,25 +32,13 @@
     <widget class="QComboBox" name="instructionTypeComboBox"/>
    </item>
    <item>
-    <widget class="QGroupBox" name="dataTypeGroupBox">
-     <property name="title">
-      <string>Data Type:</string>
-     </property>
-    </widget>
+    <widget class="QComboBox" name="dataTypeComboBox"/>
    </item>
    <item>
-    <widget class="QGroupBox" name="arithmeticOptionsGroupBox">
-     <property name="title">
-      <string>Arithmetic Options:</string>
-     </property>
-    </widget>
+    <widget class="QComboBox" name="arithmeticOptionsComboBox"/>
    </item>
    <item>
-    <widget class="QGroupBox" name="memoryOptionsGroupBox">
-     <property name="title">
-      <string>Memory Options:</string>
-     </property>
-    </widget>
+    <widget class="QComboBox" name="memoryOptionsComboBox"/>
    </item>
    <item>
     <widget class="QGroupBox" name="pipelineStagesGroupBox">
