@@ -24,6 +24,10 @@ InstructionEditorDialog::InstructionEditorDialog(QWidget *parent, Instruction *i
         for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
             if(IsOfMemoryOptions(instruction, StringToMemoryOptions(cb->text()))) cb->setChecked(true);
         }
+
+        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
+            if(IsOfPipelineStages(instruction, StringToPipelineStages(cb->text()))) cb->setChecked(true);
+        }
     }
 }
 
@@ -95,6 +99,14 @@ void InstructionEditorDialog::initializeDialog()
             memoryOptionsGroupBoxLayout->addWidget(new QCheckBox(ToString(memOpt)));
         }
     }
+
+    QVBoxLayout* pipelineStagesGroupBoxLayout = new QVBoxLayout();
+    ui->pipelineStagesGroupBox->setLayout(pipelineStagesGroupBoxLayout);
+    for(auto pStage: AllPipelineStages){
+        if(pStage != PipelineStages::None){
+            pipelineStagesGroupBoxLayout->addWidget(new QCheckBox(ToString(pStage)));
+        }
+    }
 }
 
 void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(const QString &arg1)
@@ -105,18 +117,21 @@ void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(cons
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->pipelineStagesGroupBox->setEnabled(false);
         break;
     }
     case InstructionType::Arithmetic:{
         ui->dataTypeGroupBox->setEnabled(true);
         ui->arithmeticOptionsGroupBox->setEnabled(true);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
     case InstructionType::Memory:{
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(true);
+        ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
     default: throw "[Unknown InstructionType]";
