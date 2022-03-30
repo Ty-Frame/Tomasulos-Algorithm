@@ -28,6 +28,9 @@ public:
 
     bool isDone() const;
 
+    TomasuloRunStatus getRunStatus() const;
+    void setRunStatus(TomasuloRunStatus newRunStatus);
+
 signals:
     void StepDone();
 
