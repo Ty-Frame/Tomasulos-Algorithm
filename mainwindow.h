@@ -53,9 +53,7 @@ private slots:
 
     void popupStartMenu();
 
-    void manualStep();
-
-    void clockStep();
+    void individualStep();
 
     void fullSpeedStep();
 
@@ -72,11 +70,15 @@ private:
     // Run Capability Stuff
     QTimer* mRunClock = new QTimer();
     void startClock();
+    void pauseClock();
+    void updateAllTables();
 
     // Status bar widgets and such
     QWidget* mStatusBarWidget = nullptr;
     QLabel* mStatusBarLabel = nullptr;
-    QPushButton* mStatusBarStartPauseButton = nullptr;
+    QPushButton* mStatusBarStartButton = new QPushButton("Start");
+    QPushButton* mStatusBarPauseButton = new QPushButton("Pause");
+    QPushButton* mStatusBarStepButton = new QPushButton("Step");
     QHBoxLayout* mStatusBarLayout = nullptr;
     QLabel* mLoadedArchitectureFile = nullptr;
     QLabel* mLoadedInstructionListFile = nullptr;

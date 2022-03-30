@@ -5,6 +5,16 @@
 #include "functionalunit.h"
 #include "instruction.h"
 
+
+
+enum TomasuloRunStatus{
+    NotStarted,
+    ManualStep,
+    ClockStep,
+    AutomaticStep,
+    Paused
+};
+
 class TomasuloAlgorithm : public QObject
 {
     Q_OBJECT
@@ -15,6 +25,8 @@ public:
                                QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
                                QList<ScriptInstruction>* scriptInstructionList,
                                QObject *parent = nullptr);
+
+    bool isDone() const;
 
 signals:
     void StepDone();
@@ -28,6 +40,9 @@ private:
     QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList;
     QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList;
     QList<ScriptInstruction>* mScriptInstructionList;
+
+    bool done = false;
+    TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
 };
 
 #endif // TOMASULOALGORITHM_H
