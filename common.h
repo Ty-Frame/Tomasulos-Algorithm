@@ -3,7 +3,7 @@
 
 #define MAJOR_NUMBER "0"
 #define MINOR_NUMBER "5"
-#define PATCH_NUMBER "5"
+#define PATCH_NUMBER "6"
 #define VERSION ("v"+std::string(MAJOR_NUMBER)+"."+std::string(MINOR_NUMBER)+"."+std::string(PATCH_NUMBER))
 
 #define ARCHITECTURE_FILES_DIRECTORY_PATH qApp->applicationDirPath()+"/ArchitectureFiles/"
