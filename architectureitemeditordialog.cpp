@@ -14,6 +14,7 @@ ArchitectureItemEditorDialog::ArchitectureItemEditorDialog(QWidget *parent, Func
         ui->countSpinBox->setValue(fuPointer->mFunctionalUnitCount);
         ui->latencySpinBox->setValue(fuPointer->mLatency);
         ui->functionalUnitTypeComboBox->setCurrentText(ToString(fuPointer->mFunctionalUnitType));
+        ui->reservationStationCountSpinBox->setValue(fuPointer->mReservationStationCount);
 
         for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
             if(IsOfDataType(fuPointer, StringToDataType(cb->text()))) cb->setChecked(true);
@@ -41,11 +42,11 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
     returnFU.mFunctionalUnitCount = ui->countSpinBox->value();
     returnFU.mLatency = ui->latencySpinBox->value();
     returnFU.mFunctionalUnitType = StringToFunctionalUnitType(ui->functionalUnitTypeComboBox->currentText());
-    //for(auto obj : ui->dataTypeGroupBox->layout()->children()){
+    returnFU.mReservationStationCount = ui->reservationStationCountSpinBox->value();
+
     if(ui->dataTypeGroupBox->isEnabled()){
         for(auto cb : ui->dataTypeGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
                 returnFU.mDataType = returnFU.mDataType | StringToDataType(cb->text());
             }
         }
@@ -53,7 +54,6 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
     if(ui->arithmeticOptionsGroupBox->isEnabled()){
         for(auto cb : ui->arithmeticOptionsGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
                 returnFU.mArithmeticOptions = returnFU.mArithmeticOptions | StringToArithmeticOptions(cb->text());
             }
         }
@@ -61,7 +61,6 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
     if(ui->memoryOptionsGroupBox->isEnabled()){
         for(auto cb : ui->memoryOptionsGroupBox->findChildren<QCheckBox *>()){
             if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
                 returnFU.mMemoryOptions = returnFU.mMemoryOptions | StringToMemoryOptions(cb->text());
             }
         }
@@ -72,10 +71,6 @@ FunctionalUnit ArchitectureItemEditorDialog::returnFunctionalUnit()
 void ArchitectureItemEditorDialog::initializeDialog()
 {
     this->setWindowTitle("Create Architecture Item");
-
-    FunctionalUnit fu;
-    ui->countSpinBox->setMaximum(pow(2,sizeof(fu.mFunctionalUnitCount))*8-1);
-    ui->latencySpinBox->setMaximum(pow(2,sizeof(fu.mLatency))*8-1);
 
     for (auto fuType : AllFunctionalUnitType) {
         ui->functionalUnitTypeComboBox->addItem(ToString(fuType));
@@ -114,30 +109,35 @@ void ArchitectureItemEditorDialog::on_functionalUnitTypeComboBox_currentTextChan
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->reservationStationCountSpinBox->setEnabled(false);
         break;
     }
     case FunctionalUnitType::Arithmetic:{
         ui->dataTypeGroupBox->setEnabled(true);
         ui->arithmeticOptionsGroupBox->setEnabled(true);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->reservationStationCountSpinBox->setEnabled(true);
         break;
     }
     case FunctionalUnitType::Memory:{
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(true);
+        ui->reservationStationCountSpinBox->setEnabled(true);
         break;
     }
     case FunctionalUnitType::CommonDataBus:{
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->reservationStationCountSpinBox->setEnabled(false);
         break;
     }
     case FunctionalUnitType::Register:{
         ui->dataTypeGroupBox->setEnabled(false);
         ui->arithmeticOptionsGroupBox->setEnabled(false);
         ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->reservationStationCountSpinBox->setEnabled(false);
         break;
     }
     default: throw "[Unknown FunctionalUnitType]";

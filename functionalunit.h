@@ -3,7 +3,7 @@
 
 #include <QFile>
 #include <QMessageBox>
-#include "descriptiveenumerations.h"
+#include "instruction.h"
 
 using namespace std;
 
@@ -11,6 +11,7 @@ struct FunctionalUnit{
     QString mName;
     unsigned short int mFunctionalUnitCount = 1;
     unsigned int mLatency = 1;
+    unsigned int mReservationStationCount = 0;
     FunctionalUnitType mFunctionalUnitType = FunctionalUnitType::None;
     DataType mDataType = DataType::None;
     ArithmeticOptions mArithmeticOptions = ArithmeticOptions::None;
@@ -47,6 +48,7 @@ inline bool IsOfMemoryOptions(FunctionalUnit* fu, MemoryOptions memOpt){
 inline QString ToString(FunctionalUnit a){
     QString returnString = a.mName + ": Count{" + QString::fromStdString(to_string(a.mFunctionalUnitCount)) + "}";
     returnString.append(", Latency{" + QString::fromStdString(to_string(a.mLatency)) + "}");
+    returnString.append(", ReservationStationCount{" + QString::fromStdString(to_string(a.mReservationStationCount)) + "}");
 
     returnString += ", FunctionalUnitType{";
     for(auto fuType: AllFunctionalUnitType){
@@ -101,7 +103,7 @@ inline QString ToString(FunctionalUnit a){
 
 inline FunctionalUnit StringToFunctionalUnit(QString strFU){
     FunctionalUnit fu;
-    QString expression("(.*): Count{(\\d+)}, Latency{(\\d+)}, FunctionalUnitType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
+    QString expression("(.*): Count{(\\d+)}, Latency{(\\d+)}, ReservationStationCount{(\\d+)}, FunctionalUnitType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
     QRegularExpression re(expression, QRegularExpression::DotMatchesEverythingOption);
     QRegularExpressionMatch match = re.match(strFU);
 
@@ -112,8 +114,9 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
     fu.mName = match.captured(1);
     fu.mFunctionalUnitCount = match.captured(2).toUShort();
     fu.mLatency = match.captured(3).toUInt();
+    fu.mReservationStationCount = match.captured(4).toUInt();
 
-    for(auto fuType : match.captured(4).split(", ")){
+    for(auto fuType : match.captured(5).split(", ")){
         if(fuType.isEmpty()) continue;
         try {
             fu.mFunctionalUnitType = fu.mFunctionalUnitType | StringToFunctionalUnitType(fuType);
@@ -122,7 +125,7 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto dType : match.captured(5).split(", ")){
+    for(auto dType : match.captured(6).split(", ")){
         if(dType.isEmpty()) continue;
         try {
             fu.mDataType = fu.mDataType | StringToDataType(dType);
@@ -131,7 +134,7 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto arithOpt : match.captured(6).split(", ")){
+    for(auto arithOpt : match.captured(7).split(", ")){
         if(arithOpt.isEmpty()) continue;
         try {
             fu.mArithmeticOptions = fu.mArithmeticOptions | StringToArithmeticOptions(arithOpt);
@@ -140,7 +143,7 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
         }
     }
 
-    for(auto memOpt : match.captured(7).split(", ")){
+    for(auto memOpt : match.captured(8).split(", ")){
         if(memOpt.isEmpty()) continue;
         try {
             fu.mMemoryOptions = fu.mMemoryOptions | StringToMemoryOptions(memOpt);
@@ -156,6 +159,7 @@ struct GeneralFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
     unsigned int mCountDown = 0;
     bool mBusy = false;
+    QList<ScriptInstruction*> mReservationStationList();
     QString mOperation = "";
     QString mSourceOne = "";
     QString mSourceTwo = "";
@@ -164,6 +168,7 @@ struct GeneralFunctionalUnit{
 struct MemoryFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
     bool mBusy = false;
+    QList<ScriptInstruction*> mReservationStationList();
     QString mOperation = "";
     QString mSourceOne = "";
 };
