@@ -20,11 +20,15 @@ MainWindow::~MainWindow()
     mMemoryFunctionalUnitList->clear();
     mRegisterFunctionalUnitList->clear();
     mCommonDataBusFunctionalUnitList->clear();
+    mScriptInstructionList->clear();
+    mInstructionList->clear();
 
     delete mGeneralFunctionalUnitList;
     delete mMemoryFunctionalUnitList;
     delete mRegisterFunctionalUnitList;
     delete mCommonDataBusFunctionalUnitList;
+    delete mScriptInstructionList;
+    delete mInstructionList;
 
     delete ui;
 }
@@ -52,7 +56,28 @@ void MainWindow::initializeWindow()
 
     mStatusBarLayout = new QHBoxLayout(mStatusBarWidget);
 
+    QLabel* label = new QLabel("Architecture File: ");
+    mStatusBarLayout->addWidget(label);
+    mLoadedArchitectureFile = new QLabel("N/A");
+    mStatusBarLayout->addWidget(mLoadedArchitectureFile);
+
     QSpacerItem* statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
+    mStatusBarLayout->addItem(statusBarSpacer);
+
+    label = new QLabel("Instruction List File: ");
+    mStatusBarLayout->addWidget(label);
+    mLoadedInstructionListFile = new QLabel("N/A");
+    mStatusBarLayout->addWidget(mLoadedInstructionListFile);
+
+    statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
+    mStatusBarLayout->addItem(statusBarSpacer);
+
+    label = new QLabel("Script File: ");
+    mStatusBarLayout->addWidget(label);
+    mLoadedScriptFile = new QLabel("N/A");
+    mStatusBarLayout->addWidget(mLoadedScriptFile);
+
+    statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     mStatusBarLayout->addItem(statusBarSpacer);
 
     mStatusBarStartPauseButton = new QPushButton("Start");
@@ -207,6 +232,9 @@ void MainWindow::loadArchitecture(QString filename)
         }
     }
     inFile.close();
+
+    mLoadedArchitectureFile->setText(filename.split("/").last().split(".").first());
+    mLoadedArchitectureFile->setToolTip(filename);
 
     populateFunctionalUnitReservationTable();
     populateMemoryReservationTable();
@@ -366,6 +394,9 @@ void MainWindow::on_actionLoad_Instruction_List_triggered()
         mInstructionList->append(inst);
     }
     inFile.close();
+
+    mLoadedInstructionListFile->setText(filename.split("/").last().split(".").first());
+    mLoadedInstructionListFile->setToolTip(filename);
 }
 
 
@@ -385,6 +416,9 @@ void MainWindow::on_actionLoad_Script_triggered()
 {
     QString filename = QFileDialog::getOpenFileName(this, "Select Script File", SCRIPT_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
+
+    mLoadedScriptFile->setText(filename.split("/").last().split(".").first());
+    mLoadedScriptFile->setToolTip(filename);
 
     loadScript(filename);
 }
@@ -477,5 +511,11 @@ void MainWindow::populateInstructionTable()
             model->setData(model->index(1 + i,6), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
+}
+
+
+void MainWindow::on_actionClose_Application_triggered()
+{
+    this->close();
 }
 

@@ -11,6 +11,7 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QCheckBox>
+#include <QFrame>
 #include "architecturefileeditordialog.h"
 #include "instructionlistfileeditordialog.h"
 
@@ -45,6 +46,8 @@ private slots:
 
     void on_actionLoad_Script_triggered();
 
+    void on_actionClose_Application_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -54,6 +57,9 @@ private:
     QPushButton* mStatusBarStartPauseButton = nullptr;
     QPushButton* mStatusBarCancelButton = nullptr;
     QHBoxLayout* mStatusBarLayout = nullptr;
+    QLabel* mLoadedArchitectureFile = nullptr;
+    QLabel* mLoadedInstructionListFile = nullptr;
+    QLabel* mLoadedScriptFile = nullptr;
 
     // Lists to keep track of instructions, memory functional units, other funcitonal units, and registers
     QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit>();
