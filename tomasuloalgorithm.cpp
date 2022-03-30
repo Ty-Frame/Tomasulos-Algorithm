@@ -19,3 +19,18 @@ void TomasuloAlgorithm::ProcessStep()
 
     emit StepDone();
 }
+
+TomasuloRunStatus TomasuloAlgorithm::getRunStatus() const
+{
+    return runStatus;
+}
+
+void TomasuloAlgorithm::setRunStatus(TomasuloRunStatus newRunStatus)
+{
+    runStatus = newRunStatus;
+}
+
+bool TomasuloAlgorithm::isDone() const
+{
+    return done;
+}

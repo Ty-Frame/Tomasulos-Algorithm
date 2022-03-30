@@ -11,7 +11,10 @@
 #include <QFileDialog>
 #include <QDir>
 #include <QCheckBox>
-#include <QFrame>
+#include <QMenu>
+#include <QInputDialog>
+#include <QTimer>
+#include "tomasuloalgorithm.h"
 #include "architecturefileeditordialog.h"
 #include "instructionlistfileeditordialog.h"
 
@@ -48,14 +51,34 @@ private slots:
 
     void on_actionClose_Application_triggered();
 
+    void popupStartMenu();
+
+    void individualStep();
+
+    void fullSpeedStep();
+
 private:
     Ui::MainWindow *ui;
+
+    // Algorithm Object
+    TomasuloAlgorithm* mTomasuloAlgorithm = new TomasuloAlgorithm(mGeneralFunctionalUnitList,
+                                                                  mMemoryFunctionalUnitList,
+                                                                  mRegisterFunctionalUnitList,
+                                                                  mCommonDataBusFunctionalUnitList,
+                                                                  mScriptInstructionList);
+
+    // Run Capability Stuff
+    QTimer* mRunClock = new QTimer();
+    void startClock();
+    void pauseClock();
+    void updateAllTables();
 
     // Status bar widgets and such
     QWidget* mStatusBarWidget = nullptr;
     QLabel* mStatusBarLabel = nullptr;
-    QPushButton* mStatusBarStartPauseButton = nullptr;
-    QPushButton* mStatusBarCancelButton = nullptr;
+    QPushButton* mStatusBarStartButton = new QPushButton("Start");
+    QPushButton* mStatusBarPauseButton = new QPushButton("Pause");
+    QPushButton* mStatusBarStepButton = new QPushButton("Step");
     QHBoxLayout* mStatusBarLayout = nullptr;
     QLabel* mLoadedArchitectureFile = nullptr;
     QLabel* mLoadedInstructionListFile = nullptr;
@@ -78,5 +101,8 @@ private:
     void initializeWindow();
     void loadArchitecture(QString filename);
     void loadScript(QString filename);
+
+signals:
+    void processStep();
 };
 #endif // MAINWINDOW_H

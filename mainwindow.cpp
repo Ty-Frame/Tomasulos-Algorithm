@@ -80,11 +80,10 @@ void MainWindow::initializeWindow()
     statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     mStatusBarLayout->addItem(statusBarSpacer);
 
-    mStatusBarStartPauseButton = new QPushButton("Start");
-    mStatusBarLayout->addWidget(mStatusBarStartPauseButton);
-
-    mStatusBarCancelButton = new QPushButton("Cancel");
-    mStatusBarLayout->addWidget(mStatusBarCancelButton);
+    connect(mStatusBarStartButton,SIGNAL(clicked()),this,SLOT(popupStartMenu()));
+    mStatusBarLayout->addWidget(mStatusBarStartButton);
+    connect(mRunClock,SIGNAL(timeout()),this,SLOT(individualStep()));
+    connect(mStatusBarStepButton,SIGNAL(clicked()),this,SLOT(individualStep()));
 
     // Initialize tables in status tab
     // Instruction status table columns: instruction, destination register, source 1 register, source 2 register, issue clock cycle, execution complete clock cycle, write result clock cycle
@@ -152,6 +151,87 @@ void MainWindow::initializeWindow()
     model->setData(model->index(1,0), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(3,0),QStringLiteral("Funcitonal Unit"));
     model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+}
+
+void MainWindow::popupStartMenu()
+{
+    QPoint mousePT = this->mapToGlobal(QCursor::pos());
+    QMenu* popup = new QMenu(this);
+
+    QAction* manualAction = new QAction("Manual Step",this);
+    QAction* clockAction = new QAction("Clock Step",this);
+    QAction* automaticAction = new QAction("Full Speed",this);
+    popup->addAction(manualAction);
+    popup->addAction(clockAction);
+    popup->addAction(automaticAction);
+
+    QAction* chosenAction = popup->exec(mousePT);
+    if(chosenAction==manualAction){
+        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+        mStatusBarLayout->addWidget(mStatusBarStepButton);
+        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
+    }
+    else if(chosenAction==clockAction){
+        bool ok;
+        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+        if(!ok){
+            return;
+        }
+        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+
+        mRunClock->setInterval(val);
+        mRunClock->start();
+    }
+    else if(chosenAction==automaticAction){
+        mStatusBarStartButton->setText("Pause");
+        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
+        this->fullSpeedStep();
+    }
+    else{
+        return;
+    }
+}
+
+void MainWindow::individualStep()
+{
+    emit processStep();
+    updateAllTables();
+}
+
+void MainWindow::fullSpeedStep()
+{
+    while(!mTomasuloAlgorithm->isDone() && mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Paused){
+        emit processStep();
+        updateAllTables();
+    }
+}
+
+void MainWindow::pauseClock()
+{
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::ClockStep){
+        mRunClock->stop();
+        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+    }
+    else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::AutomaticStep){
+        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+    }
+    else{
+        QMessageBox::critical(this,"Error With Pause Button","Run status not accounted for: "+QString::number(static_cast<int>(mTomasuloAlgorithm->getRunStatus())));
+    }
+}
+
+void MainWindow::updateAllTables()
+{
+    populateFunctionalUnitReservationTable();
+    populateCommonDataBusAndRegisterTable();
+    populateMemoryReservationTable();
+    populateInstructionTable();
 }
 
 void MainWindow::on_actionCreate_Architecture_triggered()
