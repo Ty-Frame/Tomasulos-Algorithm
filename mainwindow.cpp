@@ -81,10 +81,8 @@ void MainWindow::initializeWindow()
     mStatusBarLayout->addItem(statusBarSpacer);
 
     mStatusBarStartPauseButton = new QPushButton("Start");
+    connect(mStatusBarStartPauseButton,SIGNAL(clicked()),this,SLOT(popupStartMenu()));
     mStatusBarLayout->addWidget(mStatusBarStartPauseButton);
-
-    mStatusBarCancelButton = new QPushButton("Cancel");
-    mStatusBarLayout->addWidget(mStatusBarCancelButton);
 
     // Initialize tables in status tab
     // Instruction status table columns: instruction, destination register, source 1 register, source 2 register, issue clock cycle, execution complete clock cycle, write result clock cycle
@@ -152,6 +150,60 @@ void MainWindow::initializeWindow()
     model->setData(model->index(1,0), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(3,0),QStringLiteral("Funcitonal Unit"));
     model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+}
+
+void MainWindow::popupStartMenu()
+{
+    QPoint mousePT = this->mapToGlobal(QCursor::pos());
+    QMenu* popup = new QMenu(this);
+
+    QAction* manualAction = new QAction("Manual Step",this);
+    QAction* clockAction = new QAction("Clock Step",this);
+    QAction* automaticAction = new QAction("Full Speed",this);
+    popup->addAction(manualAction);
+    popup->addAction(clockAction);
+    popup->addAction(automaticAction);
+
+    QAction* chosenAction = popup->exec(mousePT);
+    if(chosenAction==manualAction){
+        mStatusBarStartPauseButton->setText("Step");
+
+    }
+    else if(chosenAction==clockAction){
+        mStatusBarStartPauseButton->setText("Pause");
+        bool ok;
+        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+        if(!ok){
+            mStatusBarStartPauseButton->setText("Start");
+            return;
+        }
+        mRunClock->setInterval(val);
+        connect(mRunClock,SIGNAL(timeout()),this,SLOT(clockStep()));
+        mRunClock->start();
+    }
+    else if(chosenAction==automaticAction){
+        mStatusBarStartPauseButton->setText("Pause");
+
+    }
+    else{
+        return;
+    }
+    disconnect(mStatusBarStartPauseButton,SIGNAL(clicked()),this,SLOT(popupStartMenu()));
+}
+
+void MainWindow::manualStep()
+{
+    emit processStep();
+}
+
+void MainWindow::clockStep()
+{
+    emit processStep();
+}
+
+void MainWindow::fullSpeedStep()
+{
+
 }
 
 void MainWindow::on_actionCreate_Architecture_triggered()
