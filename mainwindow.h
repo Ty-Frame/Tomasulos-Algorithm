@@ -96,11 +96,14 @@ private:
     void populateCommonDataBusAndRegisterTable();
     void populateMemoryReservationTable();
     void populateInstructionTable();
+    void clearAllTables();
 
 
     void initializeWindow();
     void loadArchitecture(QString filename);
     void loadScript(QString filename);
+    void loadInstructionList(QString filename);
+    bool checkNotRunning();
 
 signals:
     void processStep();

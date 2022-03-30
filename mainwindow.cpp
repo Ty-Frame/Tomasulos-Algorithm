@@ -243,6 +243,8 @@ void MainWindow::on_actionCreate_Architecture_triggered()
 
 void MainWindow::on_actionLoad_Architecture_triggered()
 {
+    if(!checkNotRunning()) return;
+
     QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", ARCHITECTURE_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
 
@@ -450,33 +452,12 @@ void MainWindow::on_actionEdit_Instruction_List_triggered()
 
 void MainWindow::on_actionLoad_Instruction_List_triggered()
 {
+    if(!checkNotRunning()) return;
+
     QString filename = QFileDialog::getOpenFileName(this, "Select Instruction List File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
 
-    QFile inFile(filename);
-    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
-        QMessageBox::critical(this, "Error Opening Instruction List File","Could not open file:\n" + filename);
-        return;
-    }
-
-    mInstructionList->clear();
-
-    QTextStream inFileStream(&inFile);
-    Instruction inst;
-    while(!inFileStream.atEnd()){
-        QString iString = inFileStream.readLine();
-        try {
-            inst = StringToInstruction(iString);
-        }  catch (QString e) {
-            QMessageBox::critical(this, "Error Reading In Instruction", e);
-        }
-
-        mInstructionList->append(inst);
-    }
-    inFile.close();
-
-    mLoadedInstructionListFile->setText(filename.split("/").last().split(".").first());
-    mLoadedInstructionListFile->setToolTip(filename);
+    loadInstructionList(filename);
 }
 
 
@@ -494,6 +475,8 @@ void MainWindow::on_actionEdit_Script_triggered()
 
 void MainWindow::on_actionLoad_Script_triggered()
 {
+    if(!checkNotRunning()) return;
+
     QString filename = QFileDialog::getOpenFileName(this, "Select Script File", SCRIPT_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
 
@@ -546,6 +529,54 @@ void MainWindow::loadScript(QString filename)
     populateInstructionTable();
 }
 
+void MainWindow::loadInstructionList(QString filename)
+{
+    QFile inFile(filename);
+    if(!inFile.open(QIODevice::ReadOnly | QIODevice::Text)){
+        QMessageBox::critical(this, "Error Opening Instruction List File","Could not open file:\n" + filename);
+        return;
+    }
+
+    mInstructionList->clear();
+
+    QTextStream inFileStream(&inFile);
+    Instruction inst;
+    while(!inFileStream.atEnd()){
+        QString iString = inFileStream.readLine();
+        try {
+            inst = StringToInstruction(iString);
+        }  catch (QString e) {
+            QMessageBox::critical(this, "Error Reading In Instruction", e);
+        }
+
+        mInstructionList->append(inst);
+    }
+    inFile.close();
+
+    mLoadedInstructionListFile->setText(filename.split("/").last().split(".").first());
+    mLoadedInstructionListFile->setToolTip(filename);
+}
+
+bool MainWindow::checkNotRunning()
+{
+    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+        int ret = QMessageBox::warning(this,"Load Error","Algorithm is in progress. Do you wish to reset the algorithm?\nThis will clear all tables.",QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if(ret==QMessageBox::No){
+            return false;
+        }
+        clearAllTables();
+    }
+    else if(mTomasuloAlgorithm->isDone()){
+        int ret = QMessageBox::warning(this,"Load Error","Algorithm is done. Do you wish to reset the algorithm?\nThis will clear all tables.",QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
+        if(ret==QMessageBox::No){
+            return false;
+        }
+        clearAllTables();
+    }
+
+    return true;
+}
+
 void MainWindow::populateInstructionTable()
 {
     ui->instructionStatusTableWidget->clear();
@@ -591,6 +622,21 @@ void MainWindow::populateInstructionTable()
             model->setData(model->index(1 + i,6), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
+}
+
+void MainWindow::clearAllTables()
+{
+    mGeneralFunctionalUnitList->clear();
+    mMemoryFunctionalUnitList->clear();
+    mRegisterFunctionalUnitList->clear();
+    mCommonDataBusFunctionalUnitList->clear();
+    mScriptInstructionList->clear();
+    mInstructionList->clear();
+
+    populateFunctionalUnitReservationTable();
+    populateCommonDataBusAndRegisterTable();
+    populateMemoryReservationTable();
+    populateInstructionTable();
 }
 
 
