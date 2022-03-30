@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>279</width>
-    <height>361</height>
+    <width>232</width>
+    <height>343</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -69,6 +69,20 @@
    </item>
    <item>
     <widget class="QComboBox" name="functionalUnitTypeComboBox"/>
+   </item>
+   <item>
+    <layout class="QHBoxLayout" name="horizontalLayout_5">
+     <item>
+      <widget class="QLabel" name="label_4">
+       <property name="text">
+        <string>Reservation Station Count:</string>
+       </property>
+      </widget>
+     </item>
+     <item>
+      <widget class="QSpinBox" name="reservationStationCountSpinBox"/>
+     </item>
+    </layout>
    </item>
    <item>
     <widget class="QGroupBox" name="dataTypeGroupBox">

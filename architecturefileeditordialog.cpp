@@ -21,14 +21,14 @@ ArchitectureFileEditorDialog::ArchitectureFileEditorDialog(QWidget *parent, QStr
     else{
         mFunctionalUnitList = new QList<FunctionalUnit>();
         try {
-            FunctionalUnit cdb = StringToFunctionalUnit("Common Data Bus: Count{1}, Latency{0}, FunctionalUnitType{Common Data Bus}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
+            FunctionalUnit cdb = StringToFunctionalUnit("Common Data Bus: Count{1}, Latency{0}, ReservationStationCount{0}, FunctionalUnitType{Common Data Bus}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
             mFunctionalUnitList->append(cdb);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::CommonDataBus), e);
         }
 
         try {
-            FunctionalUnit registers = StringToFunctionalUnit("R: Count{10}, Latency{0}, FunctionalUnitType{Register}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
+            FunctionalUnit registers = StringToFunctionalUnit("R: Count{10}, Latency{0}, ReservationStationCount{0}, FunctionalUnitType{Register}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
             mFunctionalUnitList->append(registers);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::Register), e);
