@@ -21,8 +21,11 @@ struct ScriptInstruction{
     QString mSourceOneRegister;
     QString mSourceTwoRegister;
     int mIssueClockCycle = -1;
+    int mExecutionStartClockCycle = -1;
+    int mReadAccessClockCycle = -1;
     int mExecutionCompletionClockCycle = -1;
     int mWriteResultClockCycle = -1;
+    int mCommitClockCycle = -1;
 };
 
 inline ScriptInstruction StringToScriptInstruction(QString scrInstString){
