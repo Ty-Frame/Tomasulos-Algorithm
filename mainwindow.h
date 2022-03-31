@@ -96,6 +96,7 @@ private:
     void populateCommonDataBusAndRegisterTable();
     void populateMemoryReservationTable();
     void populateInstructionTable();
+    void populateExecutionTable();
     void clearAllTables();
 
 

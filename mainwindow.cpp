@@ -151,6 +151,26 @@ void MainWindow::initializeWindow()
     model->setData(model->index(1,0), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(3,0),QStringLiteral("Funcitonal Unit"));
     model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    // Execution Table
+    ui->executionTableWidget->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->executionTableWidget->horizontalHeader()->setSectionResizeMode(QHeaderView::Stretch);
+    ui->executionTableWidget->setColumnCount(6);
+    ui->executionTableWidget->setRowCount(1);
+    model = ui->executionTableWidget->model();
+
+    model->setData(model->index(0,0),QStringLiteral("Instruction"));
+    model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,1),QStringLiteral("Issue"));
+    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,2),QStringLiteral("Execution"));
+    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Read Access"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,4),QStringLiteral("Write on CDB"));
+    model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,5),QStringLiteral("Commit"));
+    model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
 void MainWindow::popupStartMenu()
@@ -232,6 +252,7 @@ void MainWindow::updateAllTables()
     populateCommonDataBusAndRegisterTable();
     populateMemoryReservationTable();
     populateInstructionTable();
+    populateExecutionTable();
 }
 
 void MainWindow::on_actionCreate_Architecture_triggered()
@@ -527,6 +548,7 @@ void MainWindow::loadScript(QString filename)
     inFile.close();
 
     populateInstructionTable();
+    populateExecutionTable();
 }
 
 void MainWindow::loadInstructionList(QString filename)
@@ -624,6 +646,62 @@ void MainWindow::populateInstructionTable()
     }
 }
 
+void MainWindow::populateExecutionTable()
+{
+    ui->executionTableWidget->clear();
+
+    ui->executionTableWidget->setColumnCount(6);
+    ui->executionTableWidget->setRowCount(1 + mScriptInstructionList->length());
+    auto model = ui->executionTableWidget->model();
+
+    model->setData(model->index(0,0),QStringLiteral("Instruction"));
+    model->setData(model->index(0,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,1),QStringLiteral("Issue"));
+    model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,2),QStringLiteral("Execution"));
+    model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,3),QStringLiteral("Read Access"));
+    model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,4),QStringLiteral("Write on CDB"));
+    model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+    model->setData(model->index(0,5),QStringLiteral("Commit"));
+    model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+    for (int i = 0; i<mScriptInstructionList->length(); i++) {
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName+" "+mScriptInstructionList->at(i).mDestinationRegister+" "+mScriptInstructionList->at(i).mSourceOneRegister+" "+mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
+
+        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mIssueClockCycle);
+            model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+
+        if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0 && mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
+                    model->setData(model->index(1 + i,2),QString::number(mScriptInstructionList->at(i).mExecutionStartClockCycle)+"-"+QString::number(mScriptInstructionList->at(i).mExecutionCompletionClockCycle));
+                    model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+        else if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0){
+            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+            model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+
+        if(mScriptInstructionList->at(i).mReadAccessClockCycle>=0){
+            model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mReadAccessClockCycle);
+            model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+
+        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mWriteResultClockCycle);
+            model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+
+        if(mScriptInstructionList->at(i).mCommitClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mCommitClockCycle);
+            model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
+    }
+}
+
 void MainWindow::clearAllTables()
 {
     mGeneralFunctionalUnitList->clear();
@@ -633,10 +711,15 @@ void MainWindow::clearAllTables()
     mScriptInstructionList->clear();
     mInstructionList->clear();
 
+    mLoadedArchitectureFile->setText("N/A");
+    mLoadedInstructionListFile->setText("N/A");
+    mLoadedScriptFile->setText("N/A");
+
     populateFunctionalUnitReservationTable();
     populateCommonDataBusAndRegisterTable();
     populateMemoryReservationTable();
     populateInstructionTable();
+    populateExecutionTable();
 }
 
 
