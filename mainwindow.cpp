@@ -7,6 +7,13 @@ MainWindow::MainWindow(QWidget *parent)
 {
     ui->setupUi(this);
 
+    mTomasuloAlgorithm = new TomasuloAlgorithm(mGeneralFunctionalUnitList,
+                            mMemoryFunctionalUnitList,
+                            mRegisterFunctionalUnitList,
+                            mCommonDataBusFunctionalUnitList,
+                            mScriptInstructionList,
+                            mIssueNumber);
+
     initializeWindow();
 }
 
@@ -84,6 +91,8 @@ void MainWindow::initializeWindow()
     mStatusBarLayout->addWidget(mStatusBarStartButton);
     connect(mRunClock,SIGNAL(timeout()),this,SLOT(individualStep()));
     connect(mStatusBarStepButton,SIGNAL(clicked()),this,SLOT(individualStep()));
+    connect(this,SIGNAL(processStep()),mTomasuloAlgorithm,SLOT(processStep()));
+
 
     // Initialize tables in status tab
     // Instruction status table columns: instruction, destination register, source 1 register, source 2 register, issue clock cycle, execution complete clock cycle, write result clock cycle

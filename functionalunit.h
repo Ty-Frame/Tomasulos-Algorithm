@@ -159,7 +159,7 @@ struct GeneralFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
     unsigned int mCountDown = 0;
     bool mBusy = false;
-    QList<ScriptInstruction*> mReservationStationList();
+    QList<ScriptInstruction*> mReservationStationList;
     QString mOperation = "";
     QString mSourceOne = "";
     QString mSourceTwo = "";
@@ -168,7 +168,7 @@ struct GeneralFunctionalUnit{
 struct MemoryFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
     bool mBusy = false;
-    QList<ScriptInstruction*> mReservationStationList();
+    QList<ScriptInstruction*> mReservationStationList;
     QString mOperation = "";
     QString mSourceOne = "";
 };

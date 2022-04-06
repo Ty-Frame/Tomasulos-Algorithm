@@ -61,11 +61,8 @@ private:
     Ui::MainWindow *ui;
 
     // Algorithm Object
-    TomasuloAlgorithm* mTomasuloAlgorithm = new TomasuloAlgorithm(mGeneralFunctionalUnitList,
-                                                                  mMemoryFunctionalUnitList,
-                                                                  mRegisterFunctionalUnitList,
-                                                                  mCommonDataBusFunctionalUnitList,
-                                                                  mScriptInstructionList);
+    TomasuloAlgorithm* mTomasuloAlgorithm;
+    int mIssueNumber = 1;
 
     // Run Capability Stuff
     QTimer* mRunClock = new QTimer();
