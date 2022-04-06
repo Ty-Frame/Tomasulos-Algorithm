@@ -23,7 +23,8 @@ public:
                                QList<MemoryFunctionalUnit>* memoryFunctionalUnitList,
                                QList<RegisterFunctionalUnit>* registerFunctionalUnitList,
                                QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
-                               QList<ScriptInstruction>* scriptInstructionList,
+                               QList<ScriptInstruction>* scriptInstructionList,\
+                               int issueNumber,
                                QObject *parent = nullptr);
 
     bool isDone() const;
@@ -35,7 +36,7 @@ signals:
     void StepDone();
 
 public slots:
-    void ProcessStep();
+    void processStep();
 
 private:
     QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList;
@@ -44,8 +45,15 @@ private:
     QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList;
     QList<ScriptInstruction>* mScriptInstructionList;
 
+    unsigned int currentInstruction = 0;
+    unsigned int mClockCycle = 1;
     bool done = false;
+    int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
+
+    void updateFunctionalUnits();
+    void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
+    bool issueInstruction(ScriptInstruction* ins);
 };
 
 #endif // TOMASULOALGORITHM_H
