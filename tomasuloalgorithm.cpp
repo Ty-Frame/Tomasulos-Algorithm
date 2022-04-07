@@ -150,3 +150,19 @@ bool TomasuloAlgorithm::issueInstruction(ScriptInstruction *ins) {
 
     return false;
 }
+
+bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
+{
+    int len = mRegisterFunctionalUnitList->length();
+    for(int i = 0; i<len; i++){
+        RegisterFunctionalUnit rUnit = mRegisterFunctionalUnitList->at(i);
+        if(ins->mSourceOneRegister == rUnit.mFunctionalUnit.mName && !rUnit.mFunctionalUnitWithClaim.isEmpty()){
+            return true;
+        }
+        if(ins->mSourceTwoRegister == rUnit.mFunctionalUnit.mName && !rUnit.mFunctionalUnitWithClaim.isEmpty()){
+            return true;
+        }
+    }
+
+    return false;
+}
