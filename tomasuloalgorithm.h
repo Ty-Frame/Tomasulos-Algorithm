@@ -76,19 +76,9 @@ private:
 
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
-    void issueInstructions();
-    bool doDependenciesExist(ScriptInstruction* ins);
-    bool doStoreDependenciesExist(ScriptInstruction* ins);
-    void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
-    void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
-    void undoRegisterDependencies(ScriptInstruction* instruct);
-    void undoCommonDataBusDependencies(ScriptInstruction* instruct);
-    int getUnissuedInstructionIndex();
-    GeneralFunctionalUnit* getOptimalGeneralFunctionalUnit(ScriptInstruction* ins);
-    MemoryFunctionalUnit* getOptimalMemoryFunctionalUnit(ScriptInstruction* ins);
-    MemoryFunctionalUnit* getRegisterFunctionalUnit(MemoryFunctionalUnit* unit);
-    void issueInsToRegUnit(ScriptInstruction *ins);
-    ScriptInstruction* findFirstIssued(QList<ScriptInstruction*>* instructionList);
+    bool issueInstruction(ScriptInstruction* ins);
+    GeneralFunctionalUnit* findOptimalGeneralFunctionalUnit(ScriptInstruction ins);
+    MemoryFunctionalUnit* findOptimalMemoryFunctionalUnit(ScriptInstruction ins);
 };
 
 #endif // TOMASULOALGORITHM_H
