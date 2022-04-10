@@ -140,6 +140,13 @@ void ArchitectureItemEditorDialog::on_functionalUnitTypeComboBox_currentTextChan
         ui->reservationStationCountSpinBox->setEnabled(false);
         break;
     }
+    case FunctionalUnitType::Issuer:{
+        ui->dataTypeGroupBox->setEnabled(false);
+        ui->arithmeticOptionsGroupBox->setEnabled(false);
+        ui->memoryOptionsGroupBox->setEnabled(false);
+        ui->reservationStationCountSpinBox->setEnabled(false);
+        break;
+    }
     default: throw "[Unknown FunctionalUnitType]";
     }
 }

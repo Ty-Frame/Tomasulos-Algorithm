@@ -336,6 +336,10 @@ void MainWindow::loadArchitecture(QString filename)
             }
             break;
         }
+        case FunctionalUnitType::Issuer:{
+            mTomasuloAlgorithm->setIssueNumber(fu.mFunctionalUnitCount);
+            break;
+        }
         default:{
             QMessageBox::critical(this, "Error Loading Architecture", "Not sure what to do with functional unit of type: " + ToString(fu.mFunctionalUnitType) + "Funcitonal Unit: " + fuString);
             continue;

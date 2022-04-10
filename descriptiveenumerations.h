@@ -44,10 +44,11 @@ enum class FunctionalUnitType{
     Arithmetic = 1,
     Memory = 2,
     CommonDataBus = 4,
-    Register = 8
+    Register = 8,
+    Issuer = 16
 };
 
-static const FunctionalUnitType AllFunctionalUnitType[] = {FunctionalUnitType::None , FunctionalUnitType::Arithmetic, FunctionalUnitType::Memory, FunctionalUnitType::CommonDataBus, FunctionalUnitType::Register};
+static const FunctionalUnitType AllFunctionalUnitType[] = {FunctionalUnitType::None , FunctionalUnitType::Arithmetic, FunctionalUnitType::Memory, FunctionalUnitType::CommonDataBus, FunctionalUnitType::Register, FunctionalUnitType::Issuer};
 
 inline FunctionalUnitType operator|(FunctionalUnitType a, FunctionalUnitType b){
     return static_cast<FunctionalUnitType>(static_cast<int>(a) | static_cast<int>(b));
@@ -64,6 +65,7 @@ inline const QString ToString(FunctionalUnitType a){
         case FunctionalUnitType::Memory: return QString("Memory");
         case FunctionalUnitType::CommonDataBus: return QString("Common Data Bus");
         case FunctionalUnitType::Register: return QString("Register");
+        case FunctionalUnitType::Issuer: return QString("Issuer");
         default: throw QString("[Unknown FuncitonalUnitType]");
     }
 }

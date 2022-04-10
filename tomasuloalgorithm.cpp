@@ -51,6 +51,16 @@ void TomasuloAlgorithm::processStep()
     emit StepDone();
 }
 
+int TomasuloAlgorithm::issueNumber() const
+{
+    return mIssueNumber;
+}
+
+void TomasuloAlgorithm::setIssueNumber(int newIssueNumber)
+{
+    mIssueNumber = newIssueNumber;
+}
+
 TomasuloRunStatus TomasuloAlgorithm::getRunStatus() const
 {
     return runStatus;

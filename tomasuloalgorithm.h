@@ -32,6 +32,9 @@ public:
     TomasuloRunStatus getRunStatus() const;
     void setRunStatus(TomasuloRunStatus newRunStatus);
 
+    int issueNumber() const;
+    void setIssueNumber(int newIssueNumber);
+
 signals:
     void StepDone();
 
