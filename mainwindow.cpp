@@ -690,7 +690,7 @@ void MainWindow::populateExecutionTable()
                     model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
         else if(mScriptInstructionList->at(i)->mExecutionStartClockCycle>=0){
-            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mExecutionCompletionClockCycle);
+            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mExecutionStartClockCycle);
             model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
