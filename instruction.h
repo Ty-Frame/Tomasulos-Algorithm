@@ -20,6 +20,7 @@ struct ScriptInstruction{
     QString mDestinationRegister;
     QString mSourceOneRegister;
     QString mSourceTwoRegister;
+    PipelineStages mCurrentPipelineStage = PipelineStages::None;
     int mIssueClockCycle = -1;
     int mExecutionStartClockCycle = -1;
     int mReadAccessClockCycle = -1;
@@ -28,18 +29,18 @@ struct ScriptInstruction{
     int mCommitClockCycle = -1;
 };
 
-inline ScriptInstruction StringToScriptInstruction(QString scrInstString){
+inline ScriptInstruction* StringToScriptInstruction(QString scrInstString){
     QStringList fields = scrInstString.split(QRegularExpression("\\s+"));
-    ScriptInstruction returnScrInst;
+    ScriptInstruction *returnScrInst = new ScriptInstruction();
 
     if(fields.length() != 4){
         throw QString("Expected format: INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 SOURCE_REGISTER_2\n\t\tOR INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 #IMMEDIATE_VALUE\nInvalid input: " + scrInstString);
     }
 
-    returnScrInst.mInstructionName = fields[0];
-    returnScrInst.mDestinationRegister = fields[1];
-    returnScrInst.mSourceOneRegister = fields[2];
-    returnScrInst.mSourceTwoRegister = fields[3];
+    returnScrInst->mInstructionName = fields[0];
+    returnScrInst->mDestinationRegister = fields[1];
+    returnScrInst->mSourceOneRegister = fields[2];
+    returnScrInst->mSourceTwoRegister = fields[3];
     return returnScrInst;
 }
 
@@ -50,6 +51,19 @@ inline bool operator==(Instruction a, Instruction b){
             a.mArithmeticOptions == b.mArithmeticOptions &&
             a.mMemoryOptions == b.mMemoryOptions
             );
+}
+
+inline bool operator==(ScriptInstruction a, ScriptInstruction b) {
+    return(a.mInstruction == b.mInstruction &&
+           a.mInstructionName == b.mInstructionName &&
+           a.mSourceOneRegister == b.mSourceOneRegister &&
+           a.mSourceTwoRegister == b.mSourceTwoRegister &&
+           a.mCurrentPipelineStage == b.mCurrentPipelineStage &&
+           a.mIssueClockCycle == b.mIssueClockCycle &&
+           a.mCommitClockCycle == b.mCommitClockCycle &&
+           a.mExecutionStartClockCycle == b.mExecutionStartClockCycle &&
+           a.mExecutionCompletionClockCycle == b.mExecutionCompletionClockCycle &&
+           a.mDestinationRegister == b.mDestinationRegister);
 }
 
 inline bool IsOfInstructionType(Instruction* fu, InstructionType iType){

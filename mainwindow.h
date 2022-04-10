@@ -86,7 +86,7 @@ private:
     QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit>();
     QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit>();
     QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit>();
-    QList<ScriptInstruction>* mScriptInstructionList = new QList<ScriptInstruction>();
+    QList<ScriptInstruction*>* mScriptInstructionList = new QList<ScriptInstruction*>();
     QList<Instruction>* mInstructionList = new QList<Instruction>();
 
     void populateFunctionalUnitReservationTable();

@@ -532,7 +532,7 @@ void MainWindow::loadScript(QString filename)
     mScriptInstructionList->clear();
     QTextStream inFileStream(&inFile);
     QString iString;
-    ScriptInstruction scrInst;
+    ScriptInstruction *scrInst = new ScriptInstruction();
     while(!inFileStream.atEnd()){
         iString = inFileStream.readLine();
         try {
@@ -542,13 +542,13 @@ void MainWindow::loadScript(QString filename)
         }
 
         for (int i = 0; i<mInstructionList->length(); i++) {
-            if(mInstructionList->at(i).mName == scrInst.mInstructionName){
-                scrInst.mInstruction = mInstructionList->at(i);
+            if(mInstructionList->at(i).mName == scrInst->mInstructionName){
+                scrInst->mInstruction = mInstructionList->at(i);
                 mScriptInstructionList->append(scrInst);
                 break;
             }
             if(i == mInstructionList->length()-1){
-                QMessageBox::critical(this, "Error Bad Script Import", "Instruction could not be found in instruction list: " + scrInst.mInstructionName);
+                QMessageBox::critical(this, "Error Bad Script Import", "Instruction could not be found in instruction list: " + scrInst->mInstructionName);
                 mScriptInstructionList->clear();
                 return;
             }
@@ -632,24 +632,24 @@ void MainWindow::populateInstructionTable()
     model->setData(model->index(0,6), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mScriptInstructionList->length(); i++) {
-        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName);
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i)->mInstructionName);
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mDestinationRegister);
+        model->setData(model->index(1 + i,1),mScriptInstructionList->at(i)->mDestinationRegister);
         model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mSourceOneRegister);
+        model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mSourceOneRegister);
         model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,3),mScriptInstructionList->at(i)->mSourceTwoRegister);
         model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
-            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mIssueClockCycle);
+        if(mScriptInstructionList->at(i)->mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i)->mIssueClockCycle);
             model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        if(mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
-            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+        if(mScriptInstructionList->at(i)->mExecutionCompletionClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i)->mExecutionCompletionClockCycle);
             model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
-            model->setData(model->index(1 + i,6),mScriptInstructionList->at(i).mWriteResultClockCycle);
+        if(mScriptInstructionList->at(i)->mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,6),mScriptInstructionList->at(i)->mWriteResultClockCycle);
             model->setData(model->index(1 + i,6), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
@@ -677,35 +677,35 @@ void MainWindow::populateExecutionTable()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mScriptInstructionList->length(); i++) {
-        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName+" "+mScriptInstructionList->at(i).mDestinationRegister+" "+mScriptInstructionList->at(i).mSourceOneRegister+" "+mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i)->mInstructionName+" "+mScriptInstructionList->at(i)->mDestinationRegister+" "+mScriptInstructionList->at(i)->mSourceOneRegister+" "+mScriptInstructionList->at(i)->mSourceTwoRegister);
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
 
-        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
-            model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mIssueClockCycle);
+        if(mScriptInstructionList->at(i)->mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,1),mScriptInstructionList->at(i)->mIssueClockCycle);
             model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0 && mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
-                    model->setData(model->index(1 + i,2),QString::number(mScriptInstructionList->at(i).mExecutionStartClockCycle)+"-"+QString::number(mScriptInstructionList->at(i).mExecutionCompletionClockCycle));
+        if(mScriptInstructionList->at(i)->mExecutionStartClockCycle>=0 && mScriptInstructionList->at(i)->mExecutionCompletionClockCycle>=0){
+                    model->setData(model->index(1 + i,2),QString::number(mScriptInstructionList->at(i)->mExecutionStartClockCycle)+"-"+QString::number(mScriptInstructionList->at(i)->mExecutionCompletionClockCycle));
                     model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        else if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0){
-            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+        else if(mScriptInstructionList->at(i)->mExecutionStartClockCycle>=0){
+            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mExecutionCompletionClockCycle);
             model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mReadAccessClockCycle>=0){
-            model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mReadAccessClockCycle);
+        if(mScriptInstructionList->at(i)->mReadAccessClockCycle>=0){
+            model->setData(model->index(1 + i,3),mScriptInstructionList->at(i)->mReadAccessClockCycle);
             model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
-            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mWriteResultClockCycle);
+        if(mScriptInstructionList->at(i)->mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i)->mWriteResultClockCycle);
             model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mCommitClockCycle>=0){
-            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mCommitClockCycle);
+        if(mScriptInstructionList->at(i)->mCommitClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i)->mCommitClockCycle);
             model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
