@@ -23,7 +23,7 @@ public:
                                QList<MemoryFunctionalUnit>* memoryFunctionalUnitList,
                                QList<RegisterFunctionalUnit>* registerFunctionalUnitList,
                                QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
-                               QList<ScriptInstruction>* scriptInstructionList,\
+                               QList<ScriptInstruction*>* scriptInstructionList,\
                                int issueNumber,
                                QObject *parent = nullptr);
 
@@ -43,9 +43,9 @@ private:
     QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList;
     QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList;
     QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList;
-    QList<ScriptInstruction>* mScriptInstructionList;
+    QList<ScriptInstruction*>* mScriptInstructionList;
 
-    unsigned int currentInstruction = 0;
+    unsigned int mCurrentInstruction = 0;
     unsigned int mClockCycle = 1;
     bool done = false;
     int mIssueNumber;
@@ -53,8 +53,12 @@ private:
 
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
-    bool issueInstruction(ScriptInstruction* ins);
-    bool determineDependencies(ScriptInstruction* ins);
+    void issueInstruction(ScriptInstruction* ins);
+    bool doDependenciesExist(ScriptInstruction* ins);
+    int getOptimalFunctionalUnit(ScriptInstruction ins); // Finds OptimalFunctionalUnit for General and Memory Units
+    MemoryFunctionalUnit* getRegisterFunctionalUnit(MemoryFunctionalUnit* unit);
+    void issueInsToRegUnit(ScriptInstruction *ins);
+
 };
 
 #endif // TOMASULOALGORITHM_H
