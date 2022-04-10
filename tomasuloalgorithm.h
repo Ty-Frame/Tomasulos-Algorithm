@@ -54,7 +54,7 @@ private:
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
     bool issueInstruction(ScriptInstruction* ins);
-    bool determineDependencies(ScriptInstruction* ins);
+    bool doDependenciesExist(ScriptInstruction* ins);
 };
 
 #endif // TOMASULOALGORITHM_H
