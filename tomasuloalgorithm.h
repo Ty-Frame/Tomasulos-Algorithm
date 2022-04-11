@@ -12,7 +12,8 @@ enum TomasuloRunStatus{
     ManualStep,
     ClockStep,
     AutomaticStep,
-    Paused
+    Paused,
+    Done
 };
 
 class TomasuloAlgorithm : public QObject
@@ -27,7 +28,6 @@ public:
                                int issueNumber,
                                QObject *parent = nullptr);
 
-    bool isDone() const;
 
     TomasuloRunStatus getRunStatus() const;
     void setRunStatus(TomasuloRunStatus newRunStatus);
@@ -37,6 +37,10 @@ public:
 
     unsigned int currentInstruction() const;
     void setCurrentInstruction(unsigned int newCurrentInstruction);
+
+    unsigned int clockCycle() const;
+
+    void reset();
 
 signals:
     void StepDone();
@@ -53,7 +57,6 @@ private:
 
     unsigned int mCurrentInstruction = 0;
     unsigned int mClockCycle = 1;
-    bool done = false;
     int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
 

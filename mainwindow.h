@@ -31,6 +31,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void pauseClock();
+
     void on_actionCreate_Architecture_triggered();
 
     void on_actionLoad_Architecture_triggered();
@@ -61,6 +63,8 @@ private slots:
 
     void on_actionReset_Algorithm_triggered();
 
+    void on_actionLoad_Files_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -71,7 +75,6 @@ private:
     // Run Capability Stuff
     QTimer* mRunClock = new QTimer();
     void startClock();
-    void pauseClock();
     void updateAllTables();
 
     // Status bar widgets and such

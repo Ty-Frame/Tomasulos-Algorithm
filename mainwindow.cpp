@@ -92,6 +92,7 @@ void MainWindow::initializeWindow()
     connect(mRunClock,SIGNAL(timeout()),this,SLOT(individualStep()));
     connect(mStatusBarStepButton,SIGNAL(clicked()),this,SLOT(individualStep()));
     connect(this,SIGNAL(processStep()),mTomasuloAlgorithm,SLOT(processStep()));
+    connect(mStatusBarPauseButton,SIGNAL(clicked()),this,SLOT(pauseClock()));
 
 
     // Initialize tables in status tab
@@ -184,6 +185,15 @@ void MainWindow::initializeWindow()
 
 void MainWindow::popupStartMenu()
 {
+    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
+        QMessageBox::critical(this,"Error Starting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm cannot be started.");
+        return;
+    }
+    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+        QMessageBox::critical(this,"Error Starting Algorithm","Algorithm is either in progress or done.\nAlgorithm must be reset before it can be restarted.");
+        return;
+    }
+
     QPoint mousePT = this->mapToGlobal(QCursor::pos());
     QMenu* popup = new QMenu(this);
 
@@ -210,11 +220,12 @@ void MainWindow::popupStartMenu()
         mStatusBarLayout->addWidget(mStatusBarPauseButton);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
 
-        mRunClock->setInterval(val);
+        mRunClock->setInterval(val*1000);
         mRunClock->start();
     }
     else if(chosenAction==automaticAction){
-        mStatusBarStartButton->setText("Pause");
+        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+        mStatusBarLayout->removeWidget(mStatusBarStartButton);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
         this->fullSpeedStep();
     }
@@ -227,13 +238,28 @@ void MainWindow::individualStep()
 {
     emit processStep();
     updateAllTables();
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
+        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        if(mRunClock->isActive()){
+            mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+            mRunClock->stop();
+        }
+        else{
+            mStatusBarLayout->removeWidget(mStatusBarStepButton);
+        }
+    }
 }
 
 void MainWindow::fullSpeedStep()
 {
-    while(!mTomasuloAlgorithm->isDone() && mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Paused){
+    while(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Done && mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Paused){
         emit processStep();
         updateAllTables();
+    }
+
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
+        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
     }
 }
 
@@ -241,14 +267,16 @@ void MainWindow::pauseClock()
 {
     if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::ClockStep){
         mRunClock->stop();
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
         mStatusBarLayout->addWidget(mStatusBarStartButton);
+        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+        qDebug()<<"clock step paused";
     }
     else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::AutomaticStep){
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
         mStatusBarLayout->addWidget(mStatusBarStartButton);
+        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+        qDebug()<<"automatic step paused";
     }
     else{
         QMessageBox::critical(this,"Error With Pause Button","Run status not accounted for: "+QString::number(static_cast<int>(mTomasuloAlgorithm->getRunStatus())));
@@ -257,6 +285,7 @@ void MainWindow::pauseClock()
 
 void MainWindow::updateAllTables()
 {
+    ui->clockCountLabelStatusTab->setText(QString::number(mTomasuloAlgorithm->clockCycle()-1));
     populateFunctionalUnitReservationTable();
     populateCommonDataBusAndRegisterTable();
     populateMemoryReservationTable();
@@ -273,7 +302,15 @@ void MainWindow::on_actionCreate_Architecture_triggered()
 
 void MainWindow::on_actionLoad_Architecture_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedArchitectureFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Architecture File","There is an architecture that is already loaded.\n To load an architecture file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Architecture File","Algorithm is already running.\n To load an architecture file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", ARCHITECTURE_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
@@ -486,7 +523,15 @@ void MainWindow::on_actionEdit_Instruction_List_triggered()
 
 void MainWindow::on_actionLoad_Instruction_List_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedInstructionListFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Instruction List File","There is an istruction list that is already loaded.\n To load an instruction list file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Instruction List File","Algorithm is already running.\n To load an instruction list file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Instruction List File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
@@ -509,13 +554,18 @@ void MainWindow::on_actionEdit_Script_triggered()
 
 void MainWindow::on_actionLoad_Script_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedScriptFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Script File","There is a script that is already loaded.\n To load an script file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Script File","Algorithm is already running.\n To load a script file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Script File", SCRIPT_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
-
-    mLoadedScriptFile->setText(filename.split("/").last().split(".").first());
-    mLoadedScriptFile->setToolTip(filename);
 
     loadScript(filename);
 }
@@ -536,7 +586,7 @@ void MainWindow::loadScript(QString filename)
     mScriptInstructionList->clear();
     QTextStream inFileStream(&inFile);
     QString iString;
-    ScriptInstruction *scrInst = new ScriptInstruction();
+    ScriptInstruction *scrInst;
     while(!inFileStream.atEnd()){
         iString = inFileStream.readLine();
         try {
@@ -559,6 +609,9 @@ void MainWindow::loadScript(QString filename)
         }
     }
     inFile.close();
+
+    mLoadedScriptFile->setText(filename.split("/").last().split(".").first());
+    mLoadedScriptFile->setToolTip(filename);
 
     populateInstructionTable();
     populateExecutionTable();
@@ -601,7 +654,7 @@ bool MainWindow::checkNotRunning()
         }
         clearAllTables();
     }
-    else if(mTomasuloAlgorithm->isDone()){
+    else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
         int ret = QMessageBox::warning(this,"Load Error","Algorithm is done. Do you wish to reset the algorithm?\nThis will clear all tables.",QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if(ret==QMessageBox::No){
             return false;
@@ -727,6 +780,8 @@ void MainWindow::clearAllTables()
     mLoadedArchitectureFile->setText("N/A");
     mLoadedInstructionListFile->setText("N/A");
     mLoadedScriptFile->setText("N/A");
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::NotStarted);
+    ui->clockCountLabelStatusTab->setText(QString::number(mTomasuloAlgorithm->clockCycle()));
 
     populateFunctionalUnitReservationTable();
     populateCommonDataBusAndRegisterTable();
@@ -734,7 +789,6 @@ void MainWindow::clearAllTables()
     populateInstructionTable();
     populateExecutionTable();
 }
-
 
 void MainWindow::on_actionClose_Application_triggered()
 {
@@ -758,16 +812,16 @@ void MainWindow::resetAlgorithm()
     }
 
     QString archFile, instListFile, scriptFile;
-    archFile = ARCHITECTURE_FILES_DIRECTORY_PATH+mLoadedArchitectureFile->text()+".txt";
-    instListFile = INSTRUCTION_LIST_FILES_DIRECTORY_PATH+mLoadedInstructionListFile->text()+".txt";
-    scriptFile = SCRIPT_FILES_DIRECTORY_PATH+mLoadedScriptFile->text()+".txt";
+    archFile = mLoadedArchitectureFile->toolTip();
+    instListFile = mLoadedInstructionListFile->toolTip();
+    scriptFile = mLoadedScriptFile->toolTip();
+    mTomasuloAlgorithm->reset();
     clearAllTables();
 
     loadArchitecture(archFile);
     loadInstructionList(instListFile);
     loadScript(scriptFile);
 }
-
 
 void MainWindow::on_actionUnload_Files_triggered()
 {
@@ -778,5 +832,13 @@ void MainWindow::on_actionUnload_Files_triggered()
 void MainWindow::on_actionReset_Algorithm_triggered()
 {
     resetAlgorithm();
+}
+
+
+void MainWindow::on_actionLoad_Files_triggered()
+{
+    on_actionLoad_Architecture_triggered();
+    on_actionLoad_Instruction_List_triggered();
+    on_actionLoad_Script_triggered();
 }
 

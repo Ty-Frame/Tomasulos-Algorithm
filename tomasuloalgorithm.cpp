@@ -44,11 +44,26 @@ void TomasuloAlgorithm::processStep()
 
             //mScriptInstructionList->replace(mCurrentInstruction,ins);
             mCurrentInstruction++;
-            qInfo() << ins->mIssueClockCycle;
+            qDebug() << ins->mIssueClockCycle;
     }
 
     mClockCycle++;
+    if(mScriptInstructionList->last()->mCurrentPipelineStage==PipelineStages::Commit){
+        this->runStatus = TomasuloRunStatus::Done;
+    }
     emit StepDone();
+}
+
+void TomasuloAlgorithm::reset()
+{
+    this->runStatus = TomasuloRunStatus::NotStarted;
+    this->mClockCycle = 1;
+    this->mCurrentInstruction = 0;
+}
+
+unsigned int TomasuloAlgorithm::clockCycle() const
+{
+    return mClockCycle;
 }
 
 unsigned int TomasuloAlgorithm::currentInstruction() const
@@ -79,11 +94,6 @@ TomasuloRunStatus TomasuloAlgorithm::getRunStatus() const
 void TomasuloAlgorithm::setRunStatus(TomasuloRunStatus newRunStatus)
 {
     runStatus = newRunStatus;
-}
-
-bool TomasuloAlgorithm::isDone() const
-{
-    return done;
 }
 
 void TomasuloAlgorithm::updateFunctionalUnits() {

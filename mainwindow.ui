@@ -305,6 +305,7 @@
     <property name="title">
      <string>Application</string>
     </property>
+    <addaction name="actionLoad_Files"/>
     <addaction name="actionUnload_Files"/>
     <addaction name="actionReset_Algorithm"/>
     <addaction name="separator"/>
@@ -398,6 +399,11 @@
   <action name="actionReset_Algorithm">
    <property name="text">
     <string>Reset Algorithm</string>
+   </property>
+  </action>
+  <action name="actionLoad_Files">
+   <property name="text">
+    <string>Load Files</string>
    </property>
   </action>
  </widget>
