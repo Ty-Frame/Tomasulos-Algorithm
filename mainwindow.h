@@ -57,6 +57,10 @@ private slots:
 
     void fullSpeedStep();
 
+    void on_actionUnload_Files_triggered();
+
+    void on_actionReset_Algorithm_triggered();
+
 private:
     Ui::MainWindow *ui;
 
@@ -101,6 +105,8 @@ private:
     void loadArchitecture(QString filename);
     void loadScript(QString filename);
     void loadInstructionList(QString filename);
+    void unloadFiles();
+    void resetAlgorithm();
     bool checkNotRunning();
 
 signals:

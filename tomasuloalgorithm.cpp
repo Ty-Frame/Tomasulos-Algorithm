@@ -51,6 +51,16 @@ void TomasuloAlgorithm::processStep()
     emit StepDone();
 }
 
+unsigned int TomasuloAlgorithm::currentInstruction() const
+{
+    return mCurrentInstruction;
+}
+
+void TomasuloAlgorithm::setCurrentInstruction(unsigned int newCurrentInstruction)
+{
+    mCurrentInstruction = newCurrentInstruction;
+}
+
 int TomasuloAlgorithm::issueNumber() const
 {
     return mIssueNumber;

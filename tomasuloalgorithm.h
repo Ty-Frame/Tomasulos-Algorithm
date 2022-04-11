@@ -35,6 +35,9 @@ public:
     int issueNumber() const;
     void setIssueNumber(int newIssueNumber);
 
+    unsigned int currentInstruction() const;
+    void setCurrentInstruction(unsigned int newCurrentInstruction);
+
 signals:
     void StepDone();
 

@@ -741,3 +741,42 @@ void MainWindow::on_actionClose_Application_triggered()
     this->close();
 }
 
+void MainWindow::unloadFiles()
+{
+    clearAllTables();
+}
+
+void MainWindow::resetAlgorithm()
+{
+    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
+        QMessageBox::critical(this,"Error Resetting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm should not be running and cannot be reset.");
+        return;
+    }
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::NotStarted){
+        QMessageBox::critical(this,"Error Resetting Algorithm","Algorithm has not been started so it cannot be reset.");
+        return;
+    }
+
+    QString archFile, instListFile, scriptFile;
+    archFile = ARCHITECTURE_FILES_DIRECTORY_PATH+mLoadedArchitectureFile->text()+".txt";
+    instListFile = INSTRUCTION_LIST_FILES_DIRECTORY_PATH+mLoadedInstructionListFile->text()+".txt";
+    scriptFile = SCRIPT_FILES_DIRECTORY_PATH+mLoadedScriptFile->text()+".txt";
+    clearAllTables();
+
+    loadArchitecture(archFile);
+    loadInstructionList(instListFile);
+    loadScript(scriptFile);
+}
+
+
+void MainWindow::on_actionUnload_Files_triggered()
+{
+    unloadFiles();
+}
+
+
+void MainWindow::on_actionReset_Algorithm_triggered()
+{
+    resetAlgorithm();
+}
+

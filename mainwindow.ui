@@ -30,7 +30,7 @@
        </sizepolicy>
       </property>
       <property name="currentIndex">
-       <number>1</number>
+       <number>0</number>
       </property>
       <widget class="QWidget" name="StatusTab">
        <property name="sizePolicy">
@@ -305,6 +305,9 @@
     <property name="title">
      <string>Application</string>
     </property>
+    <addaction name="actionUnload_Files"/>
+    <addaction name="actionReset_Algorithm"/>
+    <addaction name="separator"/>
     <addaction name="actionClose_Application"/>
    </widget>
    <widget class="QMenu" name="menuArchitecture">
@@ -385,6 +388,16 @@
   <action name="actionLoad_Script">
    <property name="text">
     <string>Load</string>
+   </property>
+  </action>
+  <action name="actionUnload_Files">
+   <property name="text">
+    <string>Unload Files</string>
+   </property>
+  </action>
+  <action name="actionReset_Algorithm">
+   <property name="text">
+    <string>Reset Algorithm</string>
    </property>
   </action>
  </widget>
