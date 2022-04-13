@@ -53,7 +53,7 @@ private slots:
 
     void on_actionClose_Application_triggered();
 
-    void popupStartMenu();
+//    void popupStartMenu();
 
     void individualStep();
 
@@ -64,6 +64,18 @@ private slots:
     void on_actionReset_Algorithm_triggered();
 
     void on_actionLoad_Files_triggered();
+
+    void on_actionStep_Algorithm_triggered();
+
+    void on_actionPause_Algorithm_triggered();
+
+    void on_actionManual_Step_Algorithm_triggered();
+
+    void on_actionClock_Step_Algorithm_triggered();
+
+    void on_actionFull_Speed_Algorithm_triggered();
+
+    void on_actionPrerun_Check_triggered();
 
 private:
     Ui::MainWindow *ui;
@@ -79,10 +91,6 @@ private:
 
     // Status bar widgets and such
     QWidget* mStatusBarWidget = nullptr;
-    QLabel* mStatusBarLabel = nullptr;
-    QPushButton* mStatusBarStartButton = new QPushButton("Start");
-    QPushButton* mStatusBarPauseButton = new QPushButton("Pause");
-    QPushButton* mStatusBarStepButton = new QPushButton("Step");
     QHBoxLayout* mStatusBarLayout = nullptr;
     QLabel* mLoadedArchitectureFile = nullptr;
     QLabel* mLoadedInstructionListFile = nullptr;

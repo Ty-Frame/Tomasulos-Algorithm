@@ -87,12 +87,14 @@ void MainWindow::initializeWindow()
     statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     mStatusBarLayout->addItem(statusBarSpacer);
 
-    connect(mStatusBarStartButton,SIGNAL(clicked()),this,SLOT(popupStartMenu()));
-    mStatusBarLayout->addWidget(mStatusBarStartButton);
+    ui->actionManual_Step_Algorithm->setEnabled(false);
+    ui->actionClock_Step_Algorithm->setEnabled(false);
+    ui->actionFull_Speed_Algorithm->setEnabled(false);
+    ui->actionStep_Algorithm->setEnabled(false);
+    ui->actionPause_Algorithm->setEnabled(false);
+    ui->actionReset_Algorithm->setEnabled(false);
     connect(mRunClock,SIGNAL(timeout()),this,SLOT(individualStep()));
-    connect(mStatusBarStepButton,SIGNAL(clicked()),this,SLOT(individualStep()));
     connect(this,SIGNAL(processStep()),mTomasuloAlgorithm,SLOT(processStep()));
-    connect(mStatusBarPauseButton,SIGNAL(clicked()),this,SLOT(pauseClock()));
 
 
     // Initialize tables in status tab
@@ -183,69 +185,71 @@ void MainWindow::initializeWindow()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
-void MainWindow::popupStartMenu()
-{
-    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
-        QMessageBox::critical(this,"Error Starting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm cannot be started.");
-        return;
-    }
-    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
-        QMessageBox::critical(this,"Error Starting Algorithm","Algorithm is either in progress or done.\nAlgorithm must be reset before it can be restarted.");
-        return;
-    }
+//void MainWindow::popupStartMenu()
+//{
+//    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
+//        QMessageBox::critical(this,"Error Starting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm cannot be started.");
+//        return;
+//    }
+//    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+//        QMessageBox::critical(this,"Error Starting Algorithm","Algorithm is either in progress or done.\nAlgorithm must be reset before it can be restarted.");
+//        return;
+//    }
 
-    QPoint mousePT = this->mapToGlobal(QCursor::pos());
-    QMenu* popup = new QMenu(this);
+//    QPoint mousePT = this->mapToGlobal(QCursor::pos());
+//    QMenu* popup = new QMenu(this);
 
-    QAction* manualAction = new QAction("Manual Step",this);
-    QAction* clockAction = new QAction("Clock Step",this);
-    QAction* automaticAction = new QAction("Full Speed",this);
-    popup->addAction(manualAction);
-    popup->addAction(clockAction);
-    popup->addAction(automaticAction);
+//    QAction* manualAction = new QAction("Manual Step",this);
+//    QAction* clockAction = new QAction("Clock Step",this);
+//    QAction* automaticAction = new QAction("Full Speed",this);
+//    popup->addAction(manualAction);
+//    popup->addAction(clockAction);
+//    popup->addAction(automaticAction);
 
-    QAction* chosenAction = popup->exec(mousePT);
-    if(chosenAction==manualAction){
-        mStatusBarLayout->removeWidget(mStatusBarStartButton);
-        mStatusBarLayout->addWidget(mStatusBarStepButton);
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
-    }
-    else if(chosenAction==clockAction){
-        bool ok;
-        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
-        if(!ok){
-            return;
-        }
-        mStatusBarLayout->removeWidget(mStatusBarStartButton);
-        mStatusBarLayout->addWidget(mStatusBarPauseButton);
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+//    QAction* chosenAction = popup->exec(mousePT);
+//    if(chosenAction==manualAction){
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mStatusBarLayout->addWidget(mStatusBarStepButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
+//    }
+//    else if(chosenAction==clockAction){
+//        bool ok;
+//        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+//        if(!ok){
+//            return;
+//        }
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
 
-        mRunClock->setInterval(val*1000);
-        mRunClock->start();
-    }
-    else if(chosenAction==automaticAction){
-        mStatusBarLayout->addWidget(mStatusBarPauseButton);
-        mStatusBarLayout->removeWidget(mStatusBarStartButton);
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
-        this->fullSpeedStep();
-    }
-    else{
-        return;
-    }
-}
+//        mRunClock->setInterval(val*1000);
+//        mRunClock->start();
+//    }
+//    else if(chosenAction==automaticAction){
+//        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
+//        this->fullSpeedStep();
+//    }
+//    else{
+//        return;
+//    }
+//}
 
 void MainWindow::individualStep()
 {
     emit processStep();
     updateAllTables();
     if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
         if(mRunClock->isActive()){
-            mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+            ui->actionPause_Algorithm->setEnabled(false);
             mRunClock->stop();
         }
         else{
-            mStatusBarLayout->removeWidget(mStatusBarStepButton);
+            ui->actionStep_Algorithm->setEnabled(false);
         }
     }
 }
@@ -258,8 +262,10 @@ void MainWindow::fullSpeedStep()
     }
 
     if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
     }
 }
 
@@ -267,14 +273,18 @@ void MainWindow::pauseClock()
 {
     if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::ClockStep){
         mRunClock->stop();
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
         qDebug()<<"clock step paused";
     }
     else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::AutomaticStep){
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
         qDebug()<<"automatic step paused";
     }
@@ -832,6 +842,7 @@ void MainWindow::on_actionUnload_Files_triggered()
 void MainWindow::on_actionReset_Algorithm_triggered()
 {
     resetAlgorithm();
+    ui->actionReset_Algorithm->setEnabled(false);
 }
 
 
@@ -840,5 +851,68 @@ void MainWindow::on_actionLoad_Files_triggered()
     on_actionLoad_Architecture_triggered();
     on_actionLoad_Instruction_List_triggered();
     on_actionLoad_Script_triggered();
+}
+
+void MainWindow::on_actionStep_Algorithm_triggered()
+{
+    individualStep();
+}
+
+void MainWindow::on_actionPause_Algorithm_triggered()
+{
+    pauseClock();
+}
+
+
+void MainWindow::on_actionManual_Step_Algorithm_triggered()
+{
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
+    ui->actionStep_Algorithm->setEnabled(true);
+    ui->actionReset_Algorithm->setEnabled(true);
+}
+
+
+void MainWindow::on_actionClock_Step_Algorithm_triggered()
+{
+    bool ok;
+    float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+    if(!ok){
+        return;
+    }
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+    ui->actionReset_Algorithm->setEnabled(true);
+
+    mRunClock->setInterval(val*1000);
+    mRunClock->start();
+}
+
+
+void MainWindow::on_actionFull_Speed_Algorithm_triggered()
+{
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
+    ui->actionReset_Algorithm->setEnabled(true);
+    this->fullSpeedStep();
+}
+
+
+void MainWindow::on_actionPrerun_Check_triggered()
+{
+    ui->actionManual_Step_Algorithm->setEnabled(false);
+    ui->actionClock_Step_Algorithm->setEnabled(false);
+    ui->actionFull_Speed_Algorithm->setEnabled(false);
+    if(mLoadedArchitectureFile->text()=="N/A" || mLoadedInstructionListFile->text()=="N/A" || mLoadedScriptFile->text()=="N/A"){
+        QMessageBox::critical(this,"Prerun Check Error","Atleast one file has not been loaded.\nNeeded:\nArchitecture File\nInstruction List File\nScript File");
+        return;
+    }
+
+    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+        QMessageBox::critical(this,"Prerun Check Error","Algorithm is currently in progress, it must be reset.");
+        return;
+    }
+
+    ui->actionManual_Step_Algorithm->setEnabled(true);
+    ui->actionClock_Step_Algorithm->setEnabled(true);
+    ui->actionFull_Speed_Algorithm->setEnabled(true);
+    QMessageBox::critical(this,"Prerun Check Completion","Prerun check is clear.");
 }
 

@@ -305,9 +305,14 @@
     <property name="title">
      <string>Application</string>
     </property>
-    <addaction name="actionLoad_Files"/>
-    <addaction name="actionUnload_Files"/>
-    <addaction name="actionReset_Algorithm"/>
+    <widget class="QMenu" name="menuFiles">
+     <property name="title">
+      <string>Files</string>
+     </property>
+     <addaction name="actionLoad_Files"/>
+     <addaction name="actionUnload_Files"/>
+    </widget>
+    <addaction name="menuFiles"/>
     <addaction name="separator"/>
     <addaction name="actionClose_Application"/>
    </widget>
@@ -335,10 +340,29 @@
     <addaction name="actionEdit_Script"/>
     <addaction name="actionLoad_Script"/>
    </widget>
+   <widget class="QMenu" name="menuAlgorithm_2">
+    <property name="title">
+     <string>Algorithm</string>
+    </property>
+    <widget class="QMenu" name="menuStart_2">
+     <property name="title">
+      <string>Start</string>
+     </property>
+     <addaction name="actionManual_Step_Algorithm"/>
+     <addaction name="actionClock_Step_Algorithm"/>
+     <addaction name="actionFull_Speed_Algorithm"/>
+    </widget>
+    <addaction name="actionPrerun_Check"/>
+    <addaction name="menuStart_2"/>
+    <addaction name="actionStep_Algorithm"/>
+    <addaction name="actionPause_Algorithm"/>
+    <addaction name="actionReset_Algorithm"/>
+   </widget>
    <addaction name="menuApplication"/>
    <addaction name="menuArchitecture"/>
    <addaction name="menuInstruction_List"/>
    <addaction name="menuScript"/>
+   <addaction name="menuAlgorithm_2"/>
   </widget>
   <widget class="QStatusBar" name="statusbar"/>
   <action name="actionClose_Application">
@@ -391,19 +415,49 @@
     <string>Load</string>
    </property>
   </action>
+  <action name="actionLoad_Files">
+   <property name="text">
+    <string>Load</string>
+   </property>
+  </action>
   <action name="actionUnload_Files">
    <property name="text">
-    <string>Unload Files</string>
+    <string>Unload</string>
+   </property>
+  </action>
+  <action name="actionPrerun_Check">
+   <property name="text">
+    <string>Prerun Check</string>
+   </property>
+  </action>
+  <action name="actionStep_Algorithm">
+   <property name="text">
+    <string>Step</string>
+   </property>
+  </action>
+  <action name="actionPause_Algorithm">
+   <property name="text">
+    <string>Pause</string>
    </property>
   </action>
   <action name="actionReset_Algorithm">
    <property name="text">
-    <string>Reset Algorithm</string>
+    <string>Reset</string>
    </property>
   </action>
-  <action name="actionLoad_Files">
+  <action name="actionManual_Step_Algorithm">
    <property name="text">
-    <string>Load Files</string>
+    <string>Manual Step</string>
+   </property>
+  </action>
+  <action name="actionClock_Step_Algorithm">
+   <property name="text">
+    <string>Clock Step</string>
+   </property>
+  </action>
+  <action name="actionFull_Speed_Algorithm">
+   <property name="text">
+    <string>Full Speed</string>
    </property>
   </action>
  </widget>
