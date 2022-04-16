@@ -77,6 +77,8 @@ private slots:
 
     void on_actionPrerun_Check_triggered();
 
+    void updateRunStatusOptions();
+
 private:
     Ui::MainWindow *ui;
 

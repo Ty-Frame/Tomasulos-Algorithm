@@ -9,6 +9,7 @@
 
 enum TomasuloRunStatus{
     NotStarted,
+    PrerunCheckComplete,
     ManualStep,
     ClockStep,
     AutomaticStep,
@@ -44,6 +45,8 @@ public:
 
 signals:
     void StepDone();
+
+    void UpdateRunStatus();
 
 public slots:
     void processStep();

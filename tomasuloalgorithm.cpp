@@ -37,14 +37,14 @@ void TomasuloAlgorithm::processStep()
     // Get next instruction
     if(mCurrentInstruction < mScriptInstructionList->length()){
         ins = mScriptInstructionList->value(mCurrentInstruction);
-        qDebug() << "Optimal" << getOptimalFunctionalUnit(*ins);
+        //qDebug() << "Optimal" << getOptimalFunctionalUnit(*ins);
 
         // Attempt to Issue Instruction to Unit
         issueInstruction(ins);
 
             //mScriptInstructionList->replace(mCurrentInstruction,ins);
             mCurrentInstruction++;
-            qDebug() << ins->mIssueClockCycle;
+            //qDebug() << ins->mIssueClockCycle;
     }
 
     mClockCycle++;
@@ -94,6 +94,7 @@ TomasuloRunStatus TomasuloAlgorithm::getRunStatus() const
 void TomasuloAlgorithm::setRunStatus(TomasuloRunStatus newRunStatus)
 {
     runStatus = newRunStatus;
+    emit UpdateRunStatus();
 }
 
 void TomasuloAlgorithm::updateFunctionalUnits() {

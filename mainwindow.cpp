@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
                             mCommonDataBusFunctionalUnitList,
                             mScriptInstructionList,
                             mIssueNumber);
+    connect(mTomasuloAlgorithm,SIGNAL(UpdateRunStatus()),this,SLOT(updateRunStatusOptions()));
 
     initializeWindow();
 }
@@ -867,8 +868,6 @@ void MainWindow::on_actionPause_Algorithm_triggered()
 void MainWindow::on_actionManual_Step_Algorithm_triggered()
 {
     mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
-    ui->actionStep_Algorithm->setEnabled(true);
-    ui->actionReset_Algorithm->setEnabled(true);
 }
 
 
@@ -880,7 +879,6 @@ void MainWindow::on_actionClock_Step_Algorithm_triggered()
         return;
     }
     mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
-    ui->actionReset_Algorithm->setEnabled(true);
 
     mRunClock->setInterval(val*1000);
     mRunClock->start();
@@ -890,16 +888,12 @@ void MainWindow::on_actionClock_Step_Algorithm_triggered()
 void MainWindow::on_actionFull_Speed_Algorithm_triggered()
 {
     mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
-    ui->actionReset_Algorithm->setEnabled(true);
     this->fullSpeedStep();
 }
 
 
 void MainWindow::on_actionPrerun_Check_triggered()
 {
-    ui->actionManual_Step_Algorithm->setEnabled(false);
-    ui->actionClock_Step_Algorithm->setEnabled(false);
-    ui->actionFull_Speed_Algorithm->setEnabled(false);
     if(mLoadedArchitectureFile->text()=="N/A" || mLoadedInstructionListFile->text()=="N/A" || mLoadedScriptFile->text()=="N/A"){
         QMessageBox::critical(this,"Prerun Check Error","Atleast one file has not been loaded.\nNeeded:\nArchitecture File\nInstruction List File\nScript File");
         return;
@@ -910,9 +904,76 @@ void MainWindow::on_actionPrerun_Check_triggered()
         return;
     }
 
-    ui->actionManual_Step_Algorithm->setEnabled(true);
-    ui->actionClock_Step_Algorithm->setEnabled(true);
-    ui->actionFull_Speed_Algorithm->setEnabled(true);
-    QMessageBox::critical(this,"Prerun Check Completion","Prerun check is clear.");
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::PrerunCheckComplete);
+    QMessageBox::information(this,"Prerun Check Completion","Prerun check is clear.");
+}
+
+void MainWindow::updateRunStatusOptions()
+{
+    switch (mTomasuloAlgorithm->getRunStatus()) {
+    case TomasuloRunStatus::NotStarted:
+        ui->actionPrerun_Check->setEnabled(true);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::PrerunCheckComplete:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::ManualStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::ClockStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(true);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::AutomaticStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::Paused:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::Done:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    }
 }
 
