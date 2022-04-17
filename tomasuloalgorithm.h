@@ -69,6 +69,9 @@ private:
     bool doDependenciesExist(ScriptInstruction* ins);
     void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
     void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
+    void undoRegisterDependencies(GeneralFunctionalUnit* genfu);
+    void undoRegisterDependencies(MemoryFunctionalUnit* memfu);
+    void undoCommonDataBusDependencies(ScriptInstruction* instruct);
     int getUnissuedInstructionIndex();
     GeneralFunctionalUnit* getOptimalGeneralFunctionalUnit(ScriptInstruction* ins);
     MemoryFunctionalUnit* getOptimalMemoryFunctionalUnit(ScriptInstruction* ins);

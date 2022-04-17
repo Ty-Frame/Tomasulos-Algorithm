@@ -50,6 +50,7 @@ void TomasuloAlgorithm::processStep()
                 cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
                 cdbfu->mScriptInstruction->mFunctionalUnit = nullptr;
                 cdbfu->mScriptInstruction->mFunctionalUnitType = FunctionalUnitType::None;
+                undoCommonDataBusDependencies(cdbfu->mScriptInstruction);
                 qDebug()<<"Instruction Done: "<<cdbfu->mScriptInstruction->mInstructionWhole;
             }
             cdbfu->mScriptInstruction = nullptr;
@@ -113,6 +114,7 @@ void TomasuloAlgorithm::processStep()
                 memfu = mMemoryFunctionalUnitList->at(j);
                 if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==firstIssuedInst){
                     found = true;
+                    undoRegisterDependencies(memfu);
                     memfu->mReservationStationList.remove(0);
                     memfu->mCountDown = -1;
                     memfu->mOperation = "";
@@ -126,6 +128,7 @@ void TomasuloAlgorithm::processStep()
                 for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
                     genfu = mGeneralFunctionalUnitList->at(j);
                     if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()==firstIssuedInst){
+                        undoRegisterDependencies(genfu);
                         genfu->mReservationStationList.remove(0);
                         genfu->mCountDown = -1;
                         genfu->mOperation = "";
@@ -323,6 +326,36 @@ void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstr
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = memfu->mFunctionalUnit.mName;
+            break;
+        }
+    }
+}
+
+void TomasuloAlgorithm::undoRegisterDependencies(GeneralFunctionalUnit *genfu)
+{
+    for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim==genfu->mFunctionalUnit.mName){
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
+            break;
+        }
+    }
+}
+
+void TomasuloAlgorithm::undoRegisterDependencies(MemoryFunctionalUnit *memfu)
+{
+    for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim==memfu->mFunctionalUnit.mName){
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
+            break;
+        }
+    }
+}
+
+void TomasuloAlgorithm::undoCommonDataBusDependencies(ScriptInstruction *instruct)
+{
+    for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
+        if(mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim==instruct->mDestinationRegister){
+            mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
             break;
         }
     }
