@@ -58,7 +58,7 @@ void TomasuloAlgorithm::processStep()
             cdbfu->mBusy = false;
         }
     }
-    qDebug()<<"Common Data Buses Emptied";
+//    qDebug()<<"Common Data Buses Emptied";
 
     // Move issues that are completed into common data bus
     QList<ScriptInstruction*> completedInstructions;
@@ -69,7 +69,7 @@ void TomasuloAlgorithm::processStep()
             completedInstructions.append(memfu->mReservationStationList.first());
         }
     }
-    qDebug()<<"Completed Instructions For Memory Functional Units Gathered";
+//    qDebug()<<"Completed Instructions For Memory Functional Units Gathered";
 
     GeneralFunctionalUnit* genfu;
     for(int i = 0; i<mGeneralFunctionalUnitList->length(); i++){
@@ -78,7 +78,7 @@ void TomasuloAlgorithm::processStep()
             completedInstructions.append(genfu->mReservationStationList.first());
         }
     }
-    qDebug()<<"Completed Instructions For General Functional Units Gathered";
+//    qDebug()<<"Completed Instructions For General Functional Units Gathered";
 
     if(completedInstructions.length()>0){
         ScriptInstruction* firstIssuedInst;
@@ -141,15 +141,15 @@ void TomasuloAlgorithm::processStep()
             }
         }
     }
-    qDebug()<<"Completed Instructions Moved Into Common Data Bus";
+//    qDebug()<<"Completed Instructions Moved Into Common Data Bus";
 
     // Stage functional units
     updateFunctionalUnits();
-    qDebug()<<"Functional Units Updated";
+//    qDebug()<<"Functional Units Updated";
 
     // Issue new instructions
     issueInstructions();
-    qDebug()<<"Instructions Issued";
+//    qDebug()<<"Instructions Issued";
 
     mClockCycle++;
     if(mScriptInstructionList->last()->mCurrentPipelineStage==PipelineStages::Done){
@@ -213,9 +213,6 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
         }
 
         instruct = genfu->mReservationStationList.first();
-        qDebug()<<"test";
-        qDebug()<<instruct->mInstructionWhole;
-        qDebug()<<doDependenciesExist(instruct);
         qDebug()<<"Do Dependencies Exist For "<<instruct->mInstructionWhole<<"? "<<doDependenciesExist(instruct);
         if(instruct->mCurrentPipelineStage == PipelineStages::Issue && !doDependenciesExist(instruct)){
             instruct->mCurrentPipelineStage = PipelineStages::Execution;
@@ -225,14 +222,14 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
             genfu->mOperation = ToString(instruct->mInstruction.mInstructionType);
             genfu->mSourceOne = instruct->mSourceOneRegister;
             genfu->mSourceTwo = instruct->mSourceTwoRegister;
-            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
+//            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
         }
         else if(instruct->mCurrentPipelineStage == PipelineStages::Execution){
             genfu->mCountDown--;
             if(genfu->mCountDown==0){
                 instruct->mExecutionCompletionClockCycle = mClockCycle;
             }
-            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
+//            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
         }
     }
 
@@ -278,7 +275,7 @@ void TomasuloAlgorithm::issueInstructions() {
             instruct->mCurrentPipelineStage = PipelineStages::Issue;
             mCurrentInstruction++;
             setDependencies(genfu, instruct);
-            qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<genfu->mFunctionalUnit.mName;
+//            qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<genfu->mFunctionalUnit.mName;
         }
         else{
             MemoryFunctionalUnit* memfu = getOptimalMemoryFunctionalUnit(instruct);
@@ -288,7 +285,7 @@ void TomasuloAlgorithm::issueInstructions() {
                 instruct->mCurrentPipelineStage = PipelineStages::Issue;
                 mCurrentInstruction++;
                 setDependencies(memfu, instruct);
-                qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<memfu->mFunctionalUnit.mName;
+//                qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<memfu->mFunctionalUnit.mName;
             }
         }
     }
@@ -296,10 +293,23 @@ void TomasuloAlgorithm::issueInstructions() {
 
 bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
 {
+    qDebug()<<"Do Deendencies Exist For Instruction "<<ins->mInstructionWhole<<"?";
     int len = mRegisterFunctionalUnitList->length();
     RegisterFunctionalUnit* rUnit;
     for(int i = 0; i<len; i++){
         rUnit = mRegisterFunctionalUnitList->at(i);
+        if(rUnit->mInstruction!=nullptr){
+            qDebug()<<"Register: "<<rUnit->mFunctionalUnit.mName;
+            qDebug()<<"Register Instruction Address: "<<rUnit->mInstruction;
+            qDebug()<<"Instruction Source One Register: "<<ins->mSourceOneRegister;
+            qDebug()<<"Instruction Source Two Register: "<<ins->mSourceTwoRegister;
+            qDebug()<<"Register FunctionalUnitWithClaim: "<<rUnit->mFunctionalUnitWithClaim;
+            qDebug()<<"Register Instruction Issue Cycle: "<<rUnit->mInstruction->mIssueClockCycle;
+            qDebug()<<"Instruction Issue Cycle: "<<ins->mIssueClockCycle;
+        }
+        else{
+            //qDebug()<<"Register "<<rUnit->mFunctionalUnit.mName<<" Has No Instruction";
+        }
         if(rUnit->mInstruction!=nullptr && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && rUnit->mInstruction->mIssueClockCycle < ins->mIssueClockCycle){
             return true;
         }
@@ -315,6 +325,7 @@ void TomasuloAlgorithm::setDependencies(GeneralFunctionalUnit* genfu, ScriptInst
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+            mRegisterFunctionalUnitList->at(i)->mInstruction = instruct;
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = genfu->mFunctionalUnit.mName;
             break;
         }
@@ -325,6 +336,7 @@ void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstr
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+            mRegisterFunctionalUnitList->at(i)->mInstruction = instruct;
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = memfu->mFunctionalUnit.mName;
             break;
         }
