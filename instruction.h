@@ -16,6 +16,7 @@ struct Instruction{
 
 struct ScriptInstruction{
     Instruction mInstruction;
+    QString mInstructionWhole;
     QString mInstructionName;
     QString mDestinationRegister;
     QString mSourceOneRegister;
@@ -27,6 +28,8 @@ struct ScriptInstruction{
     int mExecutionCompletionClockCycle = -1;
     int mWriteResultClockCycle = -1;
     int mCommitClockCycle = -1;
+    FunctionalUnitType mFunctionalUnitType = FunctionalUnitType::None;
+    void* mFunctionalUnit = nullptr;
 };
 
 inline ScriptInstruction* StringToScriptInstruction(QString scrInstString){
@@ -37,6 +40,7 @@ inline ScriptInstruction* StringToScriptInstruction(QString scrInstString){
         throw QString("Expected format: INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 SOURCE_REGISTER_2\n\t\tOR INSTRUCTION_NAME DESTINATION_REGISTER SOURCE_REGISTER_1 #IMMEDIATE_VALUE\nInvalid input: " + scrInstString);
     }
 
+    returnScrInst->mInstructionWhole = scrInstString;
     returnScrInst->mInstructionName = fields[0];
     returnScrInst->mDestinationRegister = fields[1];
     returnScrInst->mSourceOneRegister = fields[2];

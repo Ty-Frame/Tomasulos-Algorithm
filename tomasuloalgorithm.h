@@ -21,10 +21,10 @@ class TomasuloAlgorithm : public QObject
 {
     Q_OBJECT
 public:
-    explicit TomasuloAlgorithm(QList<GeneralFunctionalUnit>* generalFunctionalUnitList,
-                               QList<MemoryFunctionalUnit>* memoryFunctionalUnitList,
-                               QList<RegisterFunctionalUnit>* registerFunctionalUnitList,
-                               QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
+    explicit TomasuloAlgorithm(QList<GeneralFunctionalUnit*>* generalFunctionalUnitList,
+                               QList<MemoryFunctionalUnit*>* memoryFunctionalUnitList,
+                               QList<RegisterFunctionalUnit*>* registerFunctionalUnitList,
+                               QList<CommonDataBusFunctionalUnit*>* commonDataBusFunctionalUnitList,
                                QList<ScriptInstruction*>* scriptInstructionList,\
                                int issueNumber,
                                QObject *parent = nullptr);
@@ -52,10 +52,10 @@ public slots:
     void processStep();
 
 private:
-    QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList;
-    QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList;
-    QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList;
-    QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList;
+    QList<GeneralFunctionalUnit*>* mGeneralFunctionalUnitList;
+    QList<MemoryFunctionalUnit*>* mMemoryFunctionalUnitList;
+    QList<RegisterFunctionalUnit*>* mRegisterFunctionalUnitList;
+    QList<CommonDataBusFunctionalUnit*>* mCommonDataBusFunctionalUnitList;
     QList<ScriptInstruction*>* mScriptInstructionList;
 
     unsigned int mCurrentInstruction = 0;
@@ -65,9 +65,13 @@ private:
 
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
-    void issueInstruction(ScriptInstruction* ins);
+    void issueInstructions();
     bool doDependenciesExist(ScriptInstruction* ins);
-    int getOptimalFunctionalUnit(ScriptInstruction ins); // Finds OptimalFunctionalUnit for General and Memory Units
+    void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
+    void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
+    int getUnissuedInstructionIndex();
+    GeneralFunctionalUnit* getOptimalGeneralFunctionalUnit(ScriptInstruction* ins);
+    MemoryFunctionalUnit* getOptimalMemoryFunctionalUnit(ScriptInstruction* ins);
     MemoryFunctionalUnit* getRegisterFunctionalUnit(MemoryFunctionalUnit* unit);
     void issueInsToRegUnit(ScriptInstruction *ins);
 };

@@ -157,9 +157,9 @@ inline FunctionalUnit StringToFunctionalUnit(QString strFU){
 
 struct GeneralFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
-    unsigned int mCountDown = 0;
+    int mCountDown = -1;
     bool mBusy = false;
-    QList<ScriptInstruction*> mReservationStationList;
+    QList<ScriptInstruction*> mReservationStationList; // Will be allowed to be +1 the size that the functional unit states. first will represent the active scriptinstruction
     QString mOperation = "";
     QString mSourceOne = "";
     QString mSourceTwo = "";
@@ -167,21 +167,23 @@ struct GeneralFunctionalUnit{
 
 struct MemoryFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
+    int mCountDown = -1;
     bool mBusy = false;
-    QList<ScriptInstruction*> mReservationStationList;
+    QList<ScriptInstruction*> mReservationStationList; // Will be allowed to be +1 the size that the functional unit states. first will represent the active scriptinstruction
     QString mOperation = "";
     QString mSourceOne = "";
 };
 
 struct RegisterFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
-    ScriptInstruction *mInstruction = nullptr;
+    ScriptInstruction* mInstruction = nullptr;
     QString mFunctionalUnitWithClaim = "";
 };
 
 struct CommonDataBusFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
     bool mBusy = false;
+    ScriptInstruction* mScriptInstruction = nullptr;
     QString mFunctionalUnitWithClaim = "";
 };
 

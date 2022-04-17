@@ -99,10 +99,10 @@ private:
     QLabel* mLoadedScriptFile = nullptr;
 
     // Lists to keep track of instructions, memory functional units, other funcitonal units, and registers
-    QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit>();
-    QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit>();
-    QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit>();
-    QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit>();
+    QList<GeneralFunctionalUnit*>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit*>();
+    QList<MemoryFunctionalUnit*>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit*>();
+    QList<RegisterFunctionalUnit*>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit*>();
+    QList<CommonDataBusFunctionalUnit*>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit*>();
     QList<ScriptInstruction*>* mScriptInstructionList = new QList<ScriptInstruction*>();
     QList<Instruction>* mInstructionList = new QList<Instruction>();
 

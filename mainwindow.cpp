@@ -350,36 +350,36 @@ void MainWindow::loadArchitecture(QString filename)
         switch (fu.mFunctionalUnitType) {
         case FunctionalUnitType::Arithmetic:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                GeneralFunctionalUnit gfu;
-                gfu.mFunctionalUnit = fu;
-                gfu.mFunctionalUnit.mName = gfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                GeneralFunctionalUnit* gfu = new GeneralFunctionalUnit();
+                gfu->mFunctionalUnit = fu;
+                gfu->mFunctionalUnit.mName = gfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mGeneralFunctionalUnitList->append(gfu);
             }
             break;
         }
         case FunctionalUnitType::Memory:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                MemoryFunctionalUnit mfu;
-                mfu.mFunctionalUnit = fu;
-                mfu.mFunctionalUnit.mName = mfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                MemoryFunctionalUnit* mfu = new MemoryFunctionalUnit();
+                mfu->mFunctionalUnit = fu;
+                mfu->mFunctionalUnit.mName = mfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mMemoryFunctionalUnitList->append(mfu);
             }
             break;
         }
         case FunctionalUnitType::CommonDataBus:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                CommonDataBusFunctionalUnit cdbfu;
-                cdbfu.mFunctionalUnit = fu;
-                cdbfu.mFunctionalUnit.mName = cdbfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                CommonDataBusFunctionalUnit* cdbfu = new CommonDataBusFunctionalUnit();
+                cdbfu->mFunctionalUnit = fu;
+                cdbfu->mFunctionalUnit.mName = cdbfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mCommonDataBusFunctionalUnitList->append(cdbfu);
             }
             break;
         }
         case FunctionalUnitType::Register:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                RegisterFunctionalUnit rfu;
-                rfu.mFunctionalUnit = fu;
-                rfu.mFunctionalUnit.mName = rfu.mFunctionalUnit.mName + QString::number(i);
+                RegisterFunctionalUnit* rfu = new RegisterFunctionalUnit();
+                rfu->mFunctionalUnit = fu;
+                rfu->mFunctionalUnit.mName = rfu->mFunctionalUnit.mName + QString::number(i);
                 mRegisterFunctionalUnitList->append(rfu);
             }
             break;
@@ -426,9 +426,14 @@ void MainWindow::populateFunctionalUnitReservationTable()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mGeneralFunctionalUnitList->length(); i++) {
-        model->setData(model->index(1 + i,0),mGeneralFunctionalUnitList->at(i).mCountDown);
+        if(mGeneralFunctionalUnitList->at(i)->mCountDown<0){
+            model->setData(model->index(1 + i,0),"-");
+        }
+        else{
+            model->setData(model->index(1 + i,0),mGeneralFunctionalUnitList->at(i)->mCountDown);
+        }
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,1),mGeneralFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i,1),mGeneralFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
         QWidget* widget = new QWidget();
         QHBoxLayout* layout = new QHBoxLayout();
@@ -437,11 +442,11 @@ void MainWindow::populateFunctionalUnitReservationTable()
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(new QCheckBox(""));
         ui->functionalUnitReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
-        model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i)->mOperation);
         model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,4),mGeneralFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i,4),mGeneralFunctionalUnitList->at(i)->mSourceOne);
         model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,5),mGeneralFunctionalUnitList->at(i).mSourceTwo);
+        model->setData(model->index(1 + i,5),mGeneralFunctionalUnitList->at(i)->mSourceTwo);
         model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }
@@ -461,17 +466,17 @@ void MainWindow::populateCommonDataBusAndRegisterTable()
     model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++) {
-        model->setData(model->index(2, 1 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(2, 1 + i), mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(2, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(2, 2 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
-        model->setData(model->index(2, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(3, 1 + i), mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim);
+        model->setData(model->index(3, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 
     for (int i = 0; i<mRegisterFunctionalUnitList->length(); i++) {
-        model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(0, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(0, 2 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
-        model->setData(model->index(0, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim);
+        model->setData(model->index(1, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }
 
@@ -492,9 +497,9 @@ void MainWindow::populateMemoryReservationTable()
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mMemoryFunctionalUnitList->length(); i++) {
-        model->setData(model->index(1 + i, 0), mMemoryFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i, 0), mMemoryFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(1 + i, 0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i, 1), mMemoryFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i, 1), mMemoryFunctionalUnitList->at(i)->mOperation);
         model->setData(model->index(1 + i, 1), Qt::AlignCenter, Qt::TextAlignmentRole);
         QWidget* widget = new QWidget();
         QHBoxLayout* layout = new QHBoxLayout();
@@ -503,7 +508,7 @@ void MainWindow::populateMemoryReservationTable()
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(new QCheckBox(""));
         ui->memoryReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
-        model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i)->mSourceOne);
         model->setData(model->index(1 + i, 3), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }

@@ -2,10 +2,10 @@
 #include<QDebug>
 #include <iostream>
 
-TomasuloAlgorithm::TomasuloAlgorithm(QList<GeneralFunctionalUnit>* generalFunctionalUnitList,
-                                     QList<MemoryFunctionalUnit>* memoryFunctionalUnitList,
-                                     QList<RegisterFunctionalUnit>* registerFunctionalUnitList,
-                                     QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
+TomasuloAlgorithm::TomasuloAlgorithm(QList<GeneralFunctionalUnit*>* generalFunctionalUnitList,
+                                     QList<MemoryFunctionalUnit*>* memoryFunctionalUnitList,
+                                     QList<RegisterFunctionalUnit*>* registerFunctionalUnitList,
+                                     QList<CommonDataBusFunctionalUnit*>* commonDataBusFunctionalUnitList,
                                      QList<ScriptInstruction*>* scriptInstructionList,
                                      int issueNumber,
                                      QObject *parent) : QObject(parent)
@@ -21,34 +21,135 @@ TomasuloAlgorithm::TomasuloAlgorithm(QList<GeneralFunctionalUnit>* generalFuncti
 
 void TomasuloAlgorithm::processStep()
 {
+    /* ---Entire Process---
+     * Empty Common Data Buses
+     * Move earliest issued AND completed instructions into a Common Data Bus
+     * If instruction is moved from the functional unit to Common Data Bus, move one from reservation station into funcitonal unit
+     * Stage all functional units
+     * Issue new instructions if capabale
+     */
 
-    // Assuming one cbd for now
-    CommonDataBusFunctionalUnit cbd = mCommonDataBusFunctionalUnitList->at(0);
-    cbd.mBusy = false;
-    cbd.mFunctionalUnitWithClaim = "";
-    mCommonDataBusFunctionalUnitList->replace(0,cbd);
+    // Stage Memory Post ExecutionDone Instructions
+    ScriptInstruction* instruct;
+    for(int i = 0; i<mScriptInstructionList->length(); i++){
+        instruct = mScriptInstructionList->at(i);
+        if(instruct->mInstruction.mInstructionType==InstructionType::Memory){
+            if(instruct->mCurrentPipelineStage==PipelineStages::ExecutionDone){
 
-
-    updateFunctionalUnits();
-
-    // Get Instruction (need to check if things are available)
-    ScriptInstruction* ins;
-
-    // Get next instruction
-    if(mCurrentInstruction < mScriptInstructionList->length()){
-        ins = mScriptInstructionList->value(mCurrentInstruction);
-        //qDebug() << "Optimal" << getOptimalFunctionalUnit(*ins);
-
-        // Attempt to Issue Instruction to Unit
-        issueInstruction(ins);
-
-            //mScriptInstructionList->replace(mCurrentInstruction,ins);
-            mCurrentInstruction++;
-            //qDebug() << ins->mIssueClockCycle;
+            }
+        }
     }
 
+    // Empty Data Buses
+    CommonDataBusFunctionalUnit* cdbfu;
+    for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
+        cdbfu = mCommonDataBusFunctionalUnitList->at(i);
+        if(cdbfu->mBusy){
+            if(cdbfu->mScriptInstruction!=nullptr){
+                cdbfu->mScriptInstruction->mCurrentPipelineStage = PipelineStages::Done;
+                cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
+                cdbfu->mScriptInstruction->mFunctionalUnit = nullptr;
+                cdbfu->mScriptInstruction->mFunctionalUnitType = FunctionalUnitType::None;
+                qDebug()<<"Instruction Done: "<<cdbfu->mScriptInstruction->mInstructionWhole;
+            }
+            cdbfu->mScriptInstruction = nullptr;
+            cdbfu->mFunctionalUnitWithClaim = "";
+            cdbfu->mBusy = false;
+        }
+    }
+    qDebug()<<"Common Data Buses Emptied";
+
+    // Move issues that are completed into common data bus
+    QList<ScriptInstruction*> completedInstructions;
+    MemoryFunctionalUnit* memfu;
+    for(int i = 0; i<mMemoryFunctionalUnitList->length(); i++){
+        memfu = mMemoryFunctionalUnitList->at(i);
+        if(memfu->mCountDown == 0 && !memfu->mReservationStationList.isEmpty()){
+            completedInstructions.append(memfu->mReservationStationList.first());
+        }
+    }
+    qDebug()<<"Completed Instructions For Memory Functional Units Gathered";
+
+    GeneralFunctionalUnit* genfu;
+    for(int i = 0; i<mGeneralFunctionalUnitList->length(); i++){
+        genfu = mGeneralFunctionalUnitList->at(i);
+        if(genfu->mCountDown == 0 && !genfu->mReservationStationList.isEmpty()){
+            completedInstructions.append(genfu->mReservationStationList.first());
+        }
+    }
+    qDebug()<<"Completed Instructions For General Functional Units Gathered";
+
+    if(completedInstructions.length()>0){
+        ScriptInstruction* firstIssuedInst;
+        for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
+
+            // Find first issued instruction
+            firstIssuedInst = completedInstructions.first();
+            for(int j = 1; j<completedInstructions.length(); j++){
+                if(completedInstructions.at(j)->mIssueClockCycle<firstIssuedInst->mIssueClockCycle){
+                    firstIssuedInst = completedInstructions.at(j);
+                }
+            }
+            // Remove first issued instruction from the completed instructions list
+            completedInstructions.remove(completedInstructions.indexOf(firstIssuedInst));
+
+            // Update common data bus with information
+            mCommonDataBusFunctionalUnitList->at(i)->mBusy = true;
+            mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = firstIssuedInst->mDestinationRegister;
+            mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction = firstIssuedInst;
+            if(firstIssuedInst->mInstruction.mMemoryOptions==MemoryOptions::Load || firstIssuedInst->mInstruction.mMemoryOptions==MemoryOptions::Store){
+                firstIssuedInst->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
+                firstIssuedInst->mReadAccessClockCycle = mClockCycle;
+            }
+            else{
+                firstIssuedInst->mWriteResultClockCycle = mClockCycle;
+                firstIssuedInst->mCurrentPipelineStage = PipelineStages::ExecutionDone;
+            }
+
+            // Remove first issued instruction from the reservation list that it is in
+            bool found = false;
+            MemoryFunctionalUnit* memfu;
+            for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
+                memfu = mMemoryFunctionalUnitList->at(j);
+                if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==firstIssuedInst){
+                    found = true;
+                    memfu->mReservationStationList.remove(0);
+                    memfu->mCountDown = -1;
+                    memfu->mOperation = "";
+                    memfu->mSourceOne = "";
+                    memfu->mBusy = false;
+                    break;
+                }
+            }
+            if(!found){
+                GeneralFunctionalUnit* genfu;
+                for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
+                    genfu = mGeneralFunctionalUnitList->at(j);
+                    if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()==firstIssuedInst){
+                        genfu->mReservationStationList.remove(0);
+                        genfu->mCountDown = -1;
+                        genfu->mOperation = "";
+                        genfu->mSourceOne = "";
+                        genfu->mSourceTwo = "";
+                        genfu->mBusy = false;
+                        break;
+                    }
+                }
+            }
+        }
+    }
+    qDebug()<<"Completed Instructions Moved Into Common Data Bus";
+
+    // Stage functional units
+    updateFunctionalUnits();
+    qDebug()<<"Functional Units Updated";
+
+    // Issue new instructions
+    issueInstructions();
+    qDebug()<<"Instructions Issued";
+
     mClockCycle++;
-    if(mScriptInstructionList->last()->mCurrentPipelineStage==PipelineStages::Commit){
+    if(mScriptInstructionList->last()->mCurrentPipelineStage==PipelineStages::Done){
         this->runStatus = TomasuloRunStatus::Done;
     }
     emit StepDone();
@@ -98,204 +199,108 @@ void TomasuloAlgorithm::setRunStatus(TomasuloRunStatus newRunStatus)
 }
 
 void TomasuloAlgorithm::updateFunctionalUnits() {
-    // Initiate Execution
 
-    // TODO handle how to remove proper instruction from register units
-    for(int i = 0; i < mGeneralFunctionalUnitList->length(); i++) {
-         GeneralFunctionalUnit unit = mGeneralFunctionalUnitList->at(i);
-
-         if(unit.mReservationStationList.empty()) {
-             continue;
-         }
-
-         ScriptInstruction *ins = unit.mReservationStationList.at(0);
-         // TODO Check for Dependencies
-         if(ins->mCurrentPipelineStage == PipelineStages::Issue && !unit.mBusy && !doDependenciesExist(ins)) {  // Move instruction into Exection stage
-             ins->mCurrentPipelineStage = PipelineStages::Execution;
-             ins->mExecutionStartClockCycle = mClockCycle;
-             unit.mBusy = true;
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Execution && unit.mCountDown > 0) {  // Instruction continue in the execution stage
-             unit.mCountDown--;
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Execution && unit.mCountDown == 0) {  // Instruction finished the execution stage
-             ins->mExecutionCompletionClockCycle = mClockCycle;
-             unit.mBusy = false;
-             ins->mCurrentPipelineStage = PipelineStages::Writeback;
-
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Writeback && !mCommonDataBusFunctionalUnitList->at(0).mBusy) {
-             // TODO check fo CDB to be available
-             ins->mCurrentPipelineStage = PipelineStages::Commit;
-             ins->mWriteResultClockCycle = mClockCycle;
-             CommonDataBusFunctionalUnit cbd = mCommonDataBusFunctionalUnitList->at(0);
-             cbd.mBusy = true;
-             cbd.mFunctionalUnitWithClaim = unit.mOperation; // TODO update to correct functional unit
-             mCommonDataBusFunctionalUnitList->replace(0,cbd);
-
-             for(int j = 0; j < mRegisterFunctionalUnitList->length(); j++) {
-                 RegisterFunctionalUnit reg = mRegisterFunctionalUnitList->at(j);
-                 if(reg.mInstruction == ins) {
-                     //reg.mFunctionalUnit = ;
-                     reg.mFunctionalUnitWithClaim = "";
-                     reg.mInstruction = nullptr;
-                     mRegisterFunctionalUnitList->replace(j,reg);
-                     break;
-                 }
-
-             }
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Commit) {
-             // TODO update to commit at correct time
-             ins->mCurrentPipelineStage = PipelineStages::None;
-             ins->mCommitClockCycle = mClockCycle;
-             unit.mReservationStationList.pop_front();
-
-
-
-
-         }
-
-         //unit.mReservationStationList.replace(0,ins);
-
-         mGeneralFunctionalUnitList->replace(i,unit);
-    }
-
-    // TODO handle how to remove proper instruction from register units
-    for(int i = 0; i < mMemoryFunctionalUnitList->length(); i++) {
-         MemoryFunctionalUnit unit = mMemoryFunctionalUnitList->at(i);
-
-         if(unit.mReservationStationList.empty()) {
-             continue;
-         }
-
-         ScriptInstruction *ins = unit.mReservationStationList.at(0);
-         // TODO Check for Dependencies
-         if(ins->mCurrentPipelineStage == PipelineStages::Issue && !unit.mBusy && !doDependenciesExist(ins)) {  // Move instruction into Exection stage
-             ins->mCurrentPipelineStage = PipelineStages::Execution;
-             ins->mExecutionStartClockCycle = mClockCycle;
-             unit.mBusy = true;
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Execution) {  // Instruction finished the execution stage
-             ins->mExecutionCompletionClockCycle = mClockCycle;
-             ins->mReadAccessClockCycle = mClockCycle + 1;
-             unit.mBusy = false;
-
-             if(ins->mInstruction.mMemoryOptions == MemoryOptions::Store) {
-                 ins->mCurrentPipelineStage = PipelineStages::Commit;
-             } else {
-                 ins->mCurrentPipelineStage = PipelineStages::Writeback;
-             }
-
-
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Writeback && !mCommonDataBusFunctionalUnitList->at(0).mBusy) {
-             // TODO check fo CDB to be available
-             ins->mCurrentPipelineStage = PipelineStages::Commit;
-             ins->mWriteResultClockCycle = mClockCycle;
-             CommonDataBusFunctionalUnit cbd = mCommonDataBusFunctionalUnitList->at(0);
-             cbd.mBusy = true;
-             cbd.mFunctionalUnitWithClaim = unit.mOperation; // TODO update to correct functional unit
-             mCommonDataBusFunctionalUnitList->replace(0,cbd);
-
-             for(int j = 0; j < mRegisterFunctionalUnitList->length(); j++) {
-                 RegisterFunctionalUnit reg = mRegisterFunctionalUnitList->at(j);
-                 if(reg.mInstruction == ins) {
-                     //reg.mFunctionalUnit = ;
-                     reg.mFunctionalUnitWithClaim = "";
-                     reg.mInstruction = nullptr;
-                     mRegisterFunctionalUnitList->replace(j,reg);
-                     break;
-                 }
-
-             }
-
-         } else if(ins->mCurrentPipelineStage == PipelineStages::Commit) {
-             // TODO update to commit at correct time
-             ins->mCurrentPipelineStage = PipelineStages::None;
-             ins->mCommitClockCycle = mClockCycle;
-             unit.mReservationStationList.pop_front();
-
-         }
-
-         //unit.mReservationStationList.replace(0,ins);
-
-         mMemoryFunctionalUnitList->replace(i,unit);
-    }
-
-}
-
-void TomasuloAlgorithm::issueInstruction(ScriptInstruction *ins) {
-    // Checks to see if a Reservation Station is available to issue instruction
-    int unitIndex = getOptimalFunctionalUnit(*ins);
-
-    if(unitIndex == -1) {
-        qDebug() << "Unable to issue instruction";
-        return;
-    }
-    // Arithmetic ins
-    FunctionalUnit functionalUnit;
-    // Find Available FunctionalUnit
-
-    if(ins->mInstruction.mInstructionType == InstructionType::Arithmetic) {
-
-        GeneralFunctionalUnit unit = mGeneralFunctionalUnitList->at(unitIndex);
-
-        ins->mCurrentPipelineStage = PipelineStages::Issue;
-        ins->mIssueClockCycle = mClockCycle;
-        unit.mSourceOne = ins->mSourceOneRegister;
-        unit.mSourceTwo = ins->mSourceTwoRegister;
-        unit.mReservationStationList.append(ins);
-        unit.mCountDown = unit.mFunctionalUnit.mLatency + 1; // Assumming countDown is for counting down when execution is done
-        //mScriptInstructionList->replace(mCurrentInstruction,*ins);
-        mGeneralFunctionalUnitList->replace(unitIndex,unit);
-        issueInsToRegUnit(ins);
-
-     } else if(ins->mInstruction.mInstructionType == InstructionType::Memory) {
-
-        MemoryFunctionalUnit unit = mMemoryFunctionalUnitList->at(unitIndex);
-
-        ins->mCurrentPipelineStage = PipelineStages::Issue;
-        ins->mIssueClockCycle = mClockCycle;
-        unit.mSourceOne = ins->mSourceOneRegister; // Is this correct register
-        unit.mReservationStationList.append(ins);
-        mMemoryFunctionalUnitList->replace(unitIndex,unit);
-        //mScriptInstructionList->replace(mCurrentInstruction,*ins);
-        issueInsToRegUnit(ins);
-    }
-
-
-
-
-}
-
-void TomasuloAlgorithm::issueInsToRegUnit(ScriptInstruction *ins) {
-    // Run optimalInstruction before this
-    int len = mRegisterFunctionalUnitList->length();
-    for(int i = 0; i<len; i++){
-        RegisterFunctionalUnit rUnit = mRegisterFunctionalUnitList->at(i);
-        if(rUnit.mFunctionalUnitWithClaim.isEmpty()){
-           rUnit.mFunctionalUnit.mName = ins->mDestinationRegister;
-           rUnit.mInstruction = ins;
-           rUnit.mFunctionalUnitWithClaim = ins->mInstructionName;  // TODO
-
-           mRegisterFunctionalUnitList->replace(i,rUnit);
-           break;
+    GeneralFunctionalUnit* genfu;
+    ScriptInstruction* instruct;
+    for(int i = 0; i<mGeneralFunctionalUnitList->length(); i++){
+        genfu = mGeneralFunctionalUnitList->at(i);
+        if(genfu->mReservationStationList.isEmpty()){
+            //qDebug()<<"Functional Unit "<<genfu->mFunctionalUnit.mName<<" Has An Empty Reservation Station List.";
+            continue;
         }
 
+        instruct = genfu->mReservationStationList.first();
+        qDebug()<<"test";
+        qDebug()<<instruct->mInstructionWhole;
+        qDebug()<<doDependenciesExist(instruct);
+        qDebug()<<"Do Dependencies Exist For "<<instruct->mInstructionWhole<<"? "<<doDependenciesExist(instruct);
+        if(instruct->mCurrentPipelineStage == PipelineStages::Issue && !doDependenciesExist(instruct)){
+            instruct->mCurrentPipelineStage = PipelineStages::Execution;
+            instruct->mExecutionStartClockCycle = mClockCycle;
+            genfu->mBusy = true;
+            genfu->mCountDown = genfu->mFunctionalUnit.mLatency;
+            genfu->mOperation = ToString(instruct->mInstruction.mInstructionType);
+            genfu->mSourceOne = instruct->mSourceOneRegister;
+            genfu->mSourceTwo = instruct->mSourceTwoRegister;
+            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
+        }
+        else if(instruct->mCurrentPipelineStage == PipelineStages::Execution){
+            genfu->mCountDown--;
+            if(genfu->mCountDown==0){
+                instruct->mExecutionCompletionClockCycle = mClockCycle;
+            }
+            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
+        }
     }
 
+    MemoryFunctionalUnit* memfu;
+    for(int i = 0; i<mMemoryFunctionalUnitList->length(); i++){
+        memfu = mMemoryFunctionalUnitList->at(i);
+        if(memfu->mReservationStationList.isEmpty()){
+            //qDebug()<<"Functional Unit "<<memfu->mFunctionalUnit.mName<<" Has An Empty Reservation Station List.";
+            continue;
+        }
+
+        instruct = memfu->mReservationStationList.first();
+        qDebug()<<"Do Dependencies Exist For "<<instruct->mInstructionWhole<<"? "<<doDependenciesExist(instruct);
+        if(instruct->mCurrentPipelineStage == PipelineStages::Issue && !doDependenciesExist(instruct)){
+            instruct->mCurrentPipelineStage = PipelineStages::Execution;
+            instruct->mExecutionStartClockCycle = mClockCycle;
+            memfu->mBusy = true;
+            memfu->mCountDown = memfu->mFunctionalUnit.mLatency;
+            memfu->mOperation = ToString(instruct->mInstruction.mInstructionType);
+            memfu->mSourceOne = instruct->mSourceOneRegister+" + "+instruct->mSourceTwoRegister;
+            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<memfu->mCountDown;
+        }
+        else if(instruct->mCurrentPipelineStage == PipelineStages::Execution){
+            memfu->mCountDown--;
+            if(memfu->mCountDown==0){
+                instruct->mExecutionCompletionClockCycle = mClockCycle;
+            }
+            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<memfu->mCountDown;
+        }
+    }
+}
+
+void TomasuloAlgorithm::issueInstructions() {
+    ScriptInstruction* instruct;
+    for(int i = 0; i<mIssueNumber; i++){
+        int issueIndex = getUnissuedInstructionIndex();
+        if(issueIndex<0) break; // Means all instructions have been issued
+        instruct = mScriptInstructionList->at(issueIndex);
+        GeneralFunctionalUnit* genfu = getOptimalGeneralFunctionalUnit(instruct);
+        if(genfu!=nullptr){
+            genfu->mReservationStationList.append(instruct);
+            instruct->mIssueClockCycle = mClockCycle;
+            instruct->mCurrentPipelineStage = PipelineStages::Issue;
+            mCurrentInstruction++;
+            setDependencies(genfu, instruct);
+            qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<genfu->mFunctionalUnit.mName;
+        }
+        else{
+            MemoryFunctionalUnit* memfu = getOptimalMemoryFunctionalUnit(instruct);
+            if(memfu!=nullptr){
+                memfu->mReservationStationList.append(instruct);
+                instruct->mIssueClockCycle = mClockCycle;
+                instruct->mCurrentPipelineStage = PipelineStages::Issue;
+                mCurrentInstruction++;
+                setDependencies(memfu, instruct);
+                qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<memfu->mFunctionalUnit.mName;
+            }
+        }
+    }
 }
 
 bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
 {
     int len = mRegisterFunctionalUnitList->length();
+    RegisterFunctionalUnit* rUnit;
     for(int i = 0; i<len; i++){
-        RegisterFunctionalUnit rUnit = mRegisterFunctionalUnitList->at(i);
-        if(ins->mSourceOneRegister == rUnit.mFunctionalUnit.mName && !rUnit.mFunctionalUnitWithClaim.isEmpty() && rUnit.mInstruction->mIssueClockCycle < ins->mIssueClockCycle){
+        rUnit = mRegisterFunctionalUnitList->at(i);
+        if(rUnit->mInstruction!=nullptr && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && rUnit->mInstruction->mIssueClockCycle < ins->mIssueClockCycle){
             return true;
         }
-        if(ins->mSourceTwoRegister == rUnit.mFunctionalUnit.mName && !rUnit.mFunctionalUnitWithClaim.isEmpty() && rUnit.mInstruction->mIssueClockCycle < ins->mIssueClockCycle){
+        if(rUnit->mInstruction!=nullptr && ins->mSourceTwoRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && rUnit->mInstruction->mIssueClockCycle < ins->mIssueClockCycle){
             return true;
         }
     }
@@ -303,48 +308,104 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
     return false;
 }
 
-
-int TomasuloAlgorithm::getOptimalFunctionalUnit(ScriptInstruction ins)
+void TomasuloAlgorithm::setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction *instruct)
 {
-    int shortestIndex = -1;
-
-    if(ins.mInstruction.mMemoryOptions != MemoryOptions::Store) {
-        bool registerUnitAvailable = false;
-        for(auto unit : *mRegisterFunctionalUnitList) {
-            if(unit.mFunctionalUnitWithClaim.isEmpty()) {
-                registerUnitAvailable = true;
-                break;
-            }
-        }
-
-        if(!registerUnitAvailable) // TODO does this memoryoptions also just return all memory options?
-            return shortestIndex;
-    }
-
-    if(ins.mInstruction.mInstructionType == InstructionType::Arithmetic) {
-        int shortest = mGeneralFunctionalUnitList->at(0).mFunctionalUnit.mReservationStationCount;
-        // Probably need to change for loops
-        for(int i = 0; i < mGeneralFunctionalUnitList->length(); i++) {
-            if(!mGeneralFunctionalUnitList->at(i).mBusy && (mGeneralFunctionalUnitList->at(i).mReservationStationList.length() == 0)){
-                return i;
-            }
-            if(mGeneralFunctionalUnitList->at(i).mReservationStationList.length() < shortest) {
-                shortest = mGeneralFunctionalUnitList->at(i).mReservationStationList.length();
-                shortestIndex = i;
-            }
-        }
-    } else if(ins.mInstruction.mInstructionType == InstructionType::Memory) {
-        int shortest = mMemoryFunctionalUnitList->at(0).mFunctionalUnit.mReservationStationCount;
-        for(int i = 0; i < mMemoryFunctionalUnitList->length(); i++) {
-            if(!mMemoryFunctionalUnitList->at(i).mBusy && (mMemoryFunctionalUnitList->at(i).mReservationStationList.length() == 0)){
-                return i;
-            }
-            if(mMemoryFunctionalUnitList->at(i).mReservationStationList.length() < shortest) {
-                shortest = mMemoryFunctionalUnitList->at(i).mReservationStationList.length();
-                shortestIndex = i;
-            }
+    for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = genfu->mFunctionalUnit.mName;
+            break;
         }
     }
+}
 
-    return shortestIndex;
+void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstruction *instruct)
+{
+    for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = memfu->mFunctionalUnit.mName;
+            break;
+        }
+    }
+}
+
+int TomasuloAlgorithm::getUnissuedInstructionIndex()
+{
+    for(int i = 0; i<mScriptInstructionList->length(); i++){
+        if(mScriptInstructionList->at(i)->mCurrentPipelineStage==PipelineStages::None) return i;
+    }
+    return -1;
+}
+
+GeneralFunctionalUnit *TomasuloAlgorithm::getOptimalGeneralFunctionalUnit(ScriptInstruction *ins)
+{
+    GeneralFunctionalUnit* retFu = nullptr;
+
+    // Get list of genral functional units that can process this instruction AND have room in their reservation list
+    GeneralFunctionalUnit* holdFu;
+    QList<GeneralFunctionalUnit*> capableFuList;
+    for(int i = 0; i<mGeneralFunctionalUnitList->length(); i++){
+        holdFu = mGeneralFunctionalUnitList->at(i);
+        if(ins->mInstruction.mArithmeticOptions!=ArithmeticOptions::None &&
+           IsOfArithmeticOptions(&(holdFu->mFunctionalUnit),ins->mInstruction.mArithmeticOptions) &&
+           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount+1){
+            capableFuList.append(holdFu);
+        }
+    }
+
+    if(capableFuList.isEmpty()){
+        return retFu;
+    }
+
+    // Find functional unit in list that has the fewest instructions in the reservation station list
+    for(int i = capableFuList.length()-2; i>=0; i--){
+        if(capableFuList.at(i)->mReservationStationList.length()>capableFuList.last()->mReservationStationList.length()){
+            capableFuList.remove(i);
+        }
+        else{
+            capableFuList.remove(capableFuList.length()-1);
+        }
+    }
+
+    if(capableFuList.length()==1){
+        retFu = capableFuList.first();
+    }
+
+    return retFu;
+}
+
+MemoryFunctionalUnit *TomasuloAlgorithm::getOptimalMemoryFunctionalUnit(ScriptInstruction *ins)
+{
+    MemoryFunctionalUnit* retFu = nullptr;
+
+    // Get list of genral functional units that can process this instruction AND have room in their reservation list
+    MemoryFunctionalUnit* holdFu;
+    QList<MemoryFunctionalUnit*> capableFuList;
+    for(int i = 0; i<mMemoryFunctionalUnitList->length(); i++){
+        holdFu = mMemoryFunctionalUnitList->at(i);
+        if(ins->mInstruction.mMemoryOptions!=MemoryOptions::None &&
+           IsOfMemoryOptions(&(holdFu->mFunctionalUnit),ins->mInstruction.mMemoryOptions) &&
+           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount+1){
+            capableFuList.append(holdFu);
+        }
+    }
+
+    if(capableFuList.isEmpty()){
+        return retFu;
+    }
+
+    // Find functional unit in list that has the fewest instructions in the reservation station list
+    for(int i = capableFuList.length()-2; i>=0; i--){
+        if(capableFuList.at(i)->mReservationStationList.length()>capableFuList.last()->mReservationStationList.length()){
+            capableFuList.remove(i);
+        }
+        else{
+            capableFuList.remove(capableFuList.length()-1);
+        }
+    }
+
+    if(capableFuList.length()==1){
+        retFu = capableFuList.first();
+    }
+
+    return retFu;
 }
