@@ -71,6 +71,7 @@ private:
     void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
     void undoRegisterDependencies(GeneralFunctionalUnit* genfu);
     void undoRegisterDependencies(MemoryFunctionalUnit* memfu);
+    void undoRegisterDependencies(ScriptInstruction* instruct);
     void undoCommonDataBusDependencies(ScriptInstruction* instruct);
     int getUnissuedInstructionIndex();
     GeneralFunctionalUnit* getOptimalGeneralFunctionalUnit(ScriptInstruction* ins);

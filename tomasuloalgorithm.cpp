@@ -66,7 +66,6 @@ void TomasuloAlgorithm::processStep()
         if(memfu->mCountDown == 0 && !memfu->mReservationStationList.isEmpty()){
             memfu->mReservationStationList.first()->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
             memfu->mReservationStationList.first()->mReadAccessClockCycle = mClockCycle;
-            undoRegisterDependencies(memfu);
             memfu->mReservationStationList.remove(0);
         }
     }
@@ -95,17 +94,14 @@ void TomasuloAlgorithm::processStep()
             completedInstructions.remove(completedInstructions.indexOf(firstIssuedInst));
 
             // Update common data bus with information
-//            if(firstIssuedInst->mCurrentPipelineStage!=PipelineStages::ReadWriteAccess && (firstIssuedInst->mInstruction.mMemoryOptions==MemoryOptions::Load || firstIssuedInst->mInstruction.mMemoryOptions==MemoryOptions::Store)){
-//                firstIssuedInst->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
-//                firstIssuedInst->mReadAccessClockCycle = mClockCycle;
-//            }
-//            else{
-                mCommonDataBusFunctionalUnitList->at(i)->mBusy = true;
-                mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = firstIssuedInst->mDestinationRegister;
-                mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction = firstIssuedInst;
-                firstIssuedInst->mWriteResultClockCycle = mClockCycle;
-                firstIssuedInst->mCurrentPipelineStage = PipelineStages::ExecutionDone;
-//            }
+            mCommonDataBusFunctionalUnitList->at(i)->mBusy = true;
+            mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = firstIssuedInst->mDestinationRegister;
+            mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction = firstIssuedInst;
+            if(firstIssuedInst->mCurrentPipelineStage == PipelineStages::ReadWriteAccess){
+                undoRegisterDependencies(firstIssuedInst);
+            }
+            firstIssuedInst->mWriteResultClockCycle = mClockCycle;
+            firstIssuedInst->mCurrentPipelineStage = PipelineStages::ExecutionDone;
 
             // Remove first issued instruction from the reservation list that it is in
             bool found = false;
@@ -363,6 +359,16 @@ void TomasuloAlgorithm::undoRegisterDependencies(MemoryFunctionalUnit *memfu)
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim==memfu->mFunctionalUnit.mName){
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
+            break;
+        }
+    }
+}
+
+void TomasuloAlgorithm::undoRegisterDependencies(ScriptInstruction *instruct)
+{
+    for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
             break;
         }
