@@ -65,6 +65,9 @@ void TomasuloAlgorithm::processStep()
             memfu->mReservationStationList.first()->mReadAccessClockCycle = mClockCycle;
             qDebug()<<"Instruction moved into ReadWriteAccess: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
             memfu->mReservationStationList.remove(0);
+            memfu->mOperation = "";
+            memfu->mSourceOne = "";
+            memfu->mBusy = false;
         }
     }
 
@@ -78,8 +81,15 @@ void TomasuloAlgorithm::processStep()
 //    qDebug()<<"Completed Instructions For General Functional Units Gathered";
 
     if(completedInstructions.length()>0){
+        int len;
+        if(completedInstructions.length()<mCommonDataBusFunctionalUnitList->length()){
+            len = completedInstructions.length();
+        }
+        else{
+            len = mCommonDataBusFunctionalUnitList->length();
+        }
         ScriptInstruction* firstIssuedInst;
-        for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
+        for(int i = 0; i<len; i++){
 
             // Find first issued instruction
             firstIssuedInst = completedInstructions.first();
