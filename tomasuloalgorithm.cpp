@@ -52,7 +52,7 @@ void TomasuloAlgorithm::processStep()
     ScriptInstruction* instruct;
     for(int i = 0; i<mScriptInstructionList->length(); i++){
         instruct = mScriptInstructionList->at(i);
-        if(instruct->mCurrentPipelineStage==PipelineStages::ReadWriteAccess){
+        if(instruct->mCurrentPipelineStage==PipelineStages::ReadWriteAccess || instruct->mCurrentPipelineStage==PipelineStages::ExecutionDone){
            completedInstructions.append(instruct);
         }
     }
@@ -83,6 +83,7 @@ void TomasuloAlgorithm::processStep()
     QList<ScriptInstruction*> movedToCDB;
     if(completedInstructions.length()>0){
         int len;
+        qDebug()<<"move to cdb: "<<completedInstructions.length()<<"<"<<mCommonDataBusFunctionalUnitList->length();
         if(completedInstructions.length()<mCommonDataBusFunctionalUnitList->length()){
             len = completedInstructions.length();
         }
@@ -233,9 +234,10 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
             instruct->mCurrentPipelineStage = PipelineStages::Execution;
             instruct->mExecutionStartClockCycle = mClockCycle;
             genfu->mBusy = true;
-            genfu->mCountDown = genfu->mFunctionalUnit.mLatency;
+            genfu->mCountDown = genfu->mFunctionalUnit.mLatency - 1;
             if(genfu->mCountDown==0){
                 instruct->mExecutionCompletionClockCycle = mClockCycle;
+                instruct->mCurrentPipelineStage = PipelineStages::ExecutionDone;
             }
             genfu->mOperation = ToString(instruct->mInstruction.mInstructionType);
             genfu->mSourceOne = instruct->mSourceOneRegister;
@@ -246,6 +248,7 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
             genfu->mCountDown--;
             if(genfu->mCountDown==0){
                 instruct->mExecutionCompletionClockCycle = mClockCycle;
+                instruct->mCurrentPipelineStage = PipelineStages::ExecutionDone;
             }
 //            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<genfu->mCountDown;
         }
@@ -265,9 +268,10 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
             instruct->mCurrentPipelineStage = PipelineStages::Execution;
             instruct->mExecutionStartClockCycle = mClockCycle;
             memfu->mBusy = true;
-            memfu->mCountDown = memfu->mFunctionalUnit.mLatency;
+            memfu->mCountDown = memfu->mFunctionalUnit.mLatency - 1;
             if(memfu->mCountDown==0){
                 instruct->mExecutionCompletionClockCycle = mClockCycle;
+                instruct->mCurrentPipelineStage = PipelineStages::ExecutionDone;
             }
             memfu->mOperation = ToString(instruct->mInstruction.mInstructionType);
             memfu->mSourceOne = instruct->mSourceOneRegister+" + "+instruct->mSourceTwoRegister;
@@ -277,6 +281,7 @@ void TomasuloAlgorithm::updateFunctionalUnits() {
             memfu->mCountDown--;
             if(memfu->mCountDown==0){
                 instruct->mExecutionCompletionClockCycle = mClockCycle;
+                instruct->mCurrentPipelineStage = PipelineStages::ExecutionDone;
             }
 //            qDebug()<<"Instruction Stepped in Functional Unit: "<<instruct->mInstructionWhole<<" CountDown: "<<memfu->mCountDown;
         }
