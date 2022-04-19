@@ -80,6 +80,7 @@ void TomasuloAlgorithm::processStep()
     }
 //    qDebug()<<"Completed Instructions For General Functional Units Gathered";
 
+    QList<ScriptInstruction*> movedToCDB;
     if(completedInstructions.length()>0){
         int len;
         if(completedInstructions.length()<mCommonDataBusFunctionalUnitList->length()){
@@ -105,10 +106,11 @@ void TomasuloAlgorithm::processStep()
             mCommonDataBusFunctionalUnitList->at(i)->mBusy = true;
             mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = firstIssuedInst->mDestinationRegister;
             mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction = firstIssuedInst;
-            if(firstIssuedInst->mCurrentPipelineStage == PipelineStages::ReadWriteAccess){
-                undoRegisterDependencies(firstIssuedInst);
-                qDebug()<<"Instruction moved into CDB: "<<firstIssuedInst->mInstructionWhole<<" CC: "<<mClockCycle;
-            }
+            movedToCDB.append(firstIssuedInst);
+//            if(firstIssuedInst->mCurrentPipelineStage == PipelineStages::ReadWriteAccess){
+//                undoRegisterDependencies(firstIssuedInst);
+//                qDebug()<<"Instruction moved into CDB: "<<firstIssuedInst->mInstructionWhole<<" CC: "<<mClockCycle;
+//            }
             firstIssuedInst->mWriteResultClockCycle = mClockCycle;
             firstIssuedInst->mCurrentPipelineStage = PipelineStages::ExecutionDone;
 
@@ -148,11 +150,17 @@ void TomasuloAlgorithm::processStep()
             }
         }
     }
+
+
 //    qDebug()<<"Completed Instructions Moved Into Common Data Bus";
 
     // Stage functional units
     updateFunctionalUnits();
 //    qDebug()<<"Functional Units Updated";
+
+    for(int i = 0; i<movedToCDB.length(); i++){
+        undoRegisterDependencies(movedToCDB.at(i));
+    }
 
     // Issue new instructions
     issueInstructions();
