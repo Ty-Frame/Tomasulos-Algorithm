@@ -95,7 +95,7 @@ void TomasuloAlgorithm::processStep()
     QList<ScriptInstruction*> movedToCDB;
     if(completedInstructions.length()>0){
         int len;
-        qDebug()<<"move to cdb: "<<completedInstructions.length()<<"<"<<mCommonDataBusFunctionalUnitList->length();
+        //qDebug()<<"move to cdb: "<<completedInstructions.length()<<"<"<<mCommonDataBusFunctionalUnitList->length();
         if(completedInstructions.length()<mCommonDataBusFunctionalUnitList->length()){
             len = completedInstructions.length();
         }
@@ -139,7 +139,7 @@ void TomasuloAlgorithm::processStep()
                 memfu = mMemoryFunctionalUnitList->at(j);
                 if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==firstIssuedInst){
                     found = true;
-                    undoRegisterDependencies(memfu);
+                    //undoRegisterDependencies(memfu);
                     qDebug()<<"Instruction moved into CDB: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                     memfu->mReservationStationList.remove(0);
                     memfu->mCountDown = -1;
@@ -154,7 +154,7 @@ void TomasuloAlgorithm::processStep()
                 for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
                     genfu = mGeneralFunctionalUnitList->at(j);
                     if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()==firstIssuedInst){
-                        undoRegisterDependencies(genfu);
+                        //undoRegisterDependencies(genfu);
                         qDebug()<<"Instruction moved into CDB: "<<genfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                         genfu->mReservationStationList.remove(0);
                         genfu->mCountDown = -1;
