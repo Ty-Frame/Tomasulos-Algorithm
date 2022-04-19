@@ -69,8 +69,6 @@ private:
     bool doDependenciesExist(ScriptInstruction* ins);
     void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
     void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
-    void undoRegisterDependencies(GeneralFunctionalUnit* genfu);
-    void undoRegisterDependencies(MemoryFunctionalUnit* memfu);
     void undoRegisterDependencies(ScriptInstruction* instruct);
     void undoCommonDataBusDependencies(ScriptInstruction* instruct);
     int getUnissuedInstructionIndex();
