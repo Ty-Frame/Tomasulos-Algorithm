@@ -50,7 +50,7 @@ void TomasuloAlgorithm::processStep()
             cdbfu->mScriptInstruction->mCurrentPipelineStage = PipelineStages::Done;
             cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
             undoCommonDataBusDependencies(cdbfu->mScriptInstruction);
-            qDebug()<<"Instruction Exited CDB: "<<cdbfu->mScriptInstruction->mInstructionWhole<<" CC: "<<mClockCycle;
+//            qDebug()<<"Instruction Exited CDB: "<<cdbfu->mScriptInstruction->mInstructionWhole<<" CC: "<<mClockCycle;
         }
         cdbfu->mScriptInstruction = nullptr;
         cdbfu->mFunctionalUnitWithClaim = "";
@@ -75,7 +75,7 @@ void TomasuloAlgorithm::processStep()
         if(memfu->mCountDown == 0 && !memfu->mReservationStationList.isEmpty()){
             memfu->mReservationStationList.first()->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
             memfu->mReservationStationList.first()->mReadAccessClockCycle = mClockCycle;
-            qDebug()<<"Instruction moved into ReadWriteAccess: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
+//            qDebug()<<"Instruction moved into ReadWriteAccess: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
             memfu->mReservationStationList.remove(0);
             memfu->mOperation = "";
             memfu->mSourceOne = "";
@@ -140,7 +140,7 @@ void TomasuloAlgorithm::processStep()
                 if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==firstIssuedInst){
                     found = true;
                     //undoRegisterDependencies(memfu);
-                    qDebug()<<"Instruction moved into CDB: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
+//                    qDebug()<<"Instruction moved into CDB: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                     memfu->mReservationStationList.remove(0);
                     memfu->mCountDown = -1;
                     memfu->mOperation = "";
@@ -155,7 +155,7 @@ void TomasuloAlgorithm::processStep()
                     genfu = mGeneralFunctionalUnitList->at(j);
                     if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()==firstIssuedInst){
                         //undoRegisterDependencies(genfu);
-                        qDebug()<<"Instruction moved into CDB: "<<genfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
+//                        qDebug()<<"Instruction moved into CDB: "<<genfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                         genfu->mReservationStationList.remove(0);
                         genfu->mCountDown = -1;
                         genfu->mOperation = "";
@@ -317,7 +317,7 @@ void TomasuloAlgorithm::issueInstructions() {
             instruct->mCurrentPipelineStage = PipelineStages::Issue;
             mCurrentInstruction++;
             setDependencies(genfu, instruct);
-//            qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<genfu->mFunctionalUnit.mName;
+            qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<genfu->mFunctionalUnit.mName;
         }
         else{
             MemoryFunctionalUnit* memfu = getOptimalMemoryFunctionalUnit(instruct);
@@ -328,7 +328,7 @@ void TomasuloAlgorithm::issueInstructions() {
                 instruct->mCurrentPipelineStage = PipelineStages::Issue;
                 mCurrentInstruction++;
                 setDependencies(memfu, instruct);
-//                qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<memfu->mFunctionalUnit.mName;
+                qDebug()<<"Instruction Issued: "<<instruct->mInstructionWhole<<" to "<<memfu->mFunctionalUnit.mName;
             }
         }
     }
@@ -445,6 +445,8 @@ GeneralFunctionalUnit *TomasuloAlgorithm::getOptimalGeneralFunctionalUnit(Script
         holdFu = mGeneralFunctionalUnitList->at(i);
         if(ins->mInstruction.mArithmeticOptions!=ArithmeticOptions::None &&
            IsOfArithmeticOptions(&(holdFu->mFunctionalUnit),ins->mInstruction.mArithmeticOptions) &&
+           ins->mInstruction.mDataType!=DataType::None &&
+           IsOfDataType(&(holdFu->mFunctionalUnit),ins->mInstruction.mDataType) &&
            holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount+1){
             capableFuList.append(holdFu);
         }
