@@ -23,6 +23,7 @@ struct ScriptInstruction{
     QString mSourceTwoRegister;
     PipelineStages mCurrentPipelineStage = PipelineStages::None;
     int mIssueClockCycle = -1;
+    int mIssueIndex = -1;
     int mExecutionStartClockCycle = -1;
     int mReadAccessClockCycle = -1;
     int mExecutionCompletionClockCycle = -1;

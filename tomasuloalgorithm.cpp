@@ -99,6 +99,11 @@ void TomasuloAlgorithm::processStep()
                 if(completedInstructions.at(j)->mIssueClockCycle<firstIssuedInst->mIssueClockCycle){
                     firstIssuedInst = completedInstructions.at(j);
                 }
+                else if(completedInstructions.at(j)->mIssueClockCycle==firstIssuedInst->mIssueClockCycle){
+                    if(completedInstructions.at(j)->mIssueIndex<firstIssuedInst->mIssueIndex){
+                        firstIssuedInst = completedInstructions.at(j);
+                    }
+                }
             }
             // Remove first issued instruction from the completed instructions list
             completedInstructions.remove(completedInstructions.indexOf(firstIssuedInst));
@@ -296,6 +301,7 @@ void TomasuloAlgorithm::issueInstructions() {
         if(genfu!=nullptr){
             genfu->mReservationStationList.append(instruct);
             instruct->mIssueClockCycle = mClockCycle;
+            instruct->mIssueIndex = i;
             instruct->mCurrentPipelineStage = PipelineStages::Issue;
             mCurrentInstruction++;
             setDependencies(genfu, instruct);
@@ -306,6 +312,7 @@ void TomasuloAlgorithm::issueInstructions() {
             if(memfu!=nullptr){
                 memfu->mReservationStationList.append(instruct);
                 instruct->mIssueClockCycle = mClockCycle;
+                instruct->mIssueIndex = i;
                 instruct->mCurrentPipelineStage = PipelineStages::Issue;
                 mCurrentInstruction++;
                 setDependencies(memfu, instruct);
