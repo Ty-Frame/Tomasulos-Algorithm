@@ -16,15 +16,14 @@ TomasuloAlgorithm::TomasuloAlgorithm(QList<GeneralFunctionalUnit*>* generalFunct
     mCommonDataBusFunctionalUnitList = commonDataBusFunctionalUnitList;
     mScriptInstructionList = scriptInstructionList;
     mIssueNumber = issueNumber;
-
 }
 
 void TomasuloAlgorithm::processStep()
 {
     /* ---Entire Process---
      * Empty Common Data Buses
-     * Move earliest issued AND completed instructions into a Common Data Bus
-     * If instruction is moved from the functional unit to Common Data Bus, move one from reservation station into funcitonal unit
+     * Move earliest issued AND completed instructions into a Common Data Bus OR memory related instrucitons that are in readwrite
+     * If instruction is moved from the functional unit to Common Data Bus
      * Stage all functional units
      * Issue new instructions if capabale
      */
@@ -37,10 +36,8 @@ void TomasuloAlgorithm::processStep()
             if(cdbfu->mScriptInstruction!=nullptr){
                 cdbfu->mScriptInstruction->mCurrentPipelineStage = PipelineStages::Done;
                 cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
-                cdbfu->mScriptInstruction->mFunctionalUnit = nullptr;
-                cdbfu->mScriptInstruction->mFunctionalUnitType = FunctionalUnitType::None;
                 undoCommonDataBusDependencies(cdbfu->mScriptInstruction);
-                qDebug()<<"Instruction Done: "<<cdbfu->mScriptInstruction->mInstructionWhole;
+                qDebug()<<"Instruction Exited CDB: "<<cdbfu->mScriptInstruction->mInstructionWhole<<" CC: "<<mClockCycle;
             }
             cdbfu->mScriptInstruction = nullptr;
             cdbfu->mFunctionalUnitWithClaim = "";
@@ -66,6 +63,7 @@ void TomasuloAlgorithm::processStep()
         if(memfu->mCountDown == 0 && !memfu->mReservationStationList.isEmpty()){
             memfu->mReservationStationList.first()->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
             memfu->mReservationStationList.first()->mReadAccessClockCycle = mClockCycle;
+            qDebug()<<"Instruction moved into ReadWriteAccess: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
             memfu->mReservationStationList.remove(0);
         }
     }
@@ -99,6 +97,7 @@ void TomasuloAlgorithm::processStep()
             mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction = firstIssuedInst;
             if(firstIssuedInst->mCurrentPipelineStage == PipelineStages::ReadWriteAccess){
                 undoRegisterDependencies(firstIssuedInst);
+                qDebug()<<"Instruction moved into CDB: "<<firstIssuedInst->mInstructionWhole<<" CC: "<<mClockCycle;
             }
             firstIssuedInst->mWriteResultClockCycle = mClockCycle;
             firstIssuedInst->mCurrentPipelineStage = PipelineStages::ExecutionDone;
@@ -111,6 +110,7 @@ void TomasuloAlgorithm::processStep()
                 if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==firstIssuedInst){
                     found = true;
                     undoRegisterDependencies(memfu);
+                    qDebug()<<"Instruction moved into CDB: "<<memfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                     memfu->mReservationStationList.remove(0);
                     memfu->mCountDown = -1;
                     memfu->mOperation = "";
@@ -125,6 +125,7 @@ void TomasuloAlgorithm::processStep()
                     genfu = mGeneralFunctionalUnitList->at(j);
                     if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()==firstIssuedInst){
                         undoRegisterDependencies(genfu);
+                        qDebug()<<"Instruction moved into CDB: "<<genfu->mReservationStationList.first()->mInstructionWhole<<" CC: "<<mClockCycle;
                         genfu->mReservationStationList.remove(0);
                         genfu->mCountDown = -1;
                         genfu->mOperation = "";

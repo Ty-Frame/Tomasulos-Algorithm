@@ -28,8 +28,6 @@ struct ScriptInstruction{
     int mExecutionCompletionClockCycle = -1;
     int mWriteResultClockCycle = -1;
     int mCommitClockCycle = -1;
-    FunctionalUnitType mFunctionalUnitType = FunctionalUnitType::None;
-    void* mFunctionalUnit = nullptr;
 };
 
 inline ScriptInstruction* StringToScriptInstruction(QString scrInstString){
