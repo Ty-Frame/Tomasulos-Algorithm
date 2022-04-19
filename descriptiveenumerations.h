@@ -44,10 +44,11 @@ enum class FunctionalUnitType{
     Arithmetic = 1,
     Memory = 2,
     CommonDataBus = 4,
-    Register = 8
+    Register = 8,
+    Issuer = 16
 };
 
-static const FunctionalUnitType AllFunctionalUnitType[] = {FunctionalUnitType::None , FunctionalUnitType::Arithmetic, FunctionalUnitType::Memory, FunctionalUnitType::CommonDataBus, FunctionalUnitType::Register};
+static const FunctionalUnitType AllFunctionalUnitType[] = {FunctionalUnitType::None , FunctionalUnitType::Arithmetic, FunctionalUnitType::Memory, FunctionalUnitType::CommonDataBus, FunctionalUnitType::Register, FunctionalUnitType::Issuer};
 
 inline FunctionalUnitType operator|(FunctionalUnitType a, FunctionalUnitType b){
     return static_cast<FunctionalUnitType>(static_cast<int>(a) | static_cast<int>(b));
@@ -64,6 +65,7 @@ inline const QString ToString(FunctionalUnitType a){
         case FunctionalUnitType::Memory: return QString("Memory");
         case FunctionalUnitType::CommonDataBus: return QString("Common Data Bus");
         case FunctionalUnitType::Register: return QString("Register");
+        case FunctionalUnitType::Issuer: return QString("Issuer");
         default: throw QString("[Unknown FuncitonalUnitType]");
     }
 }
@@ -185,11 +187,14 @@ enum class PipelineStages{
     None = 0,
     Issue = 1,
     Execution = 2,
-    Writeback = 4,
-    Commit = 8
+    ExecutionDone = 4,
+    ReadWriteAccess = 8,
+    Writeback = 16,
+    Commit = 32,
+    Done = 64
 };
 
-static const PipelineStages AllPipelineStages[] = {PipelineStages::None , PipelineStages::Issue, PipelineStages::Execution, PipelineStages::Writeback, PipelineStages::Commit};
+static const PipelineStages AllPipelineStages[] = {PipelineStages::None , PipelineStages::Issue, PipelineStages::Execution, PipelineStages::ExecutionDone, PipelineStages::ReadWriteAccess, PipelineStages::Writeback, PipelineStages::Commit, PipelineStages::Done};
 
 inline PipelineStages operator|(PipelineStages a, PipelineStages b){
     return static_cast<PipelineStages>(static_cast<int>(a) | static_cast<int>(b));
@@ -204,8 +209,11 @@ inline const QString ToString(PipelineStages a){
         case PipelineStages::None: return QString("None");
         case PipelineStages::Issue: return QString("Issue");
         case PipelineStages::Execution: return QString("Execution");
+        case PipelineStages::ExecutionDone: return QString("Execution Done");
+        case PipelineStages::ReadWriteAccess: return QString("Read Write Access");
         case PipelineStages::Writeback: return QString("Writeback");
         case PipelineStages::Commit: return QString("Commit");
+        case PipelineStages::Done: return QString("Done");
         default: throw QString("[Unknown PipelineStages]");
     }
 }

@@ -13,6 +13,7 @@ MainWindow::MainWindow(QWidget *parent)
                             mCommonDataBusFunctionalUnitList,
                             mScriptInstructionList,
                             mIssueNumber);
+    connect(mTomasuloAlgorithm,SIGNAL(UpdateRunStatus()),this,SLOT(updateRunStatusOptions()));
 
     initializeWindow();
 }
@@ -87,10 +88,13 @@ void MainWindow::initializeWindow()
     statusBarSpacer = new QSpacerItem(40,20,QSizePolicy::MinimumExpanding,QSizePolicy::Minimum);
     mStatusBarLayout->addItem(statusBarSpacer);
 
-    connect(mStatusBarStartButton,SIGNAL(clicked()),this,SLOT(popupStartMenu()));
-    mStatusBarLayout->addWidget(mStatusBarStartButton);
+    ui->actionManual_Step_Algorithm->setEnabled(false);
+    ui->actionClock_Step_Algorithm->setEnabled(false);
+    ui->actionFull_Speed_Algorithm->setEnabled(false);
+    ui->actionStep_Algorithm->setEnabled(false);
+    ui->actionPause_Algorithm->setEnabled(false);
+    ui->actionReset_Algorithm->setEnabled(false);
     connect(mRunClock,SIGNAL(timeout()),this,SLOT(individualStep()));
-    connect(mStatusBarStepButton,SIGNAL(clicked()),this,SLOT(individualStep()));
     connect(this,SIGNAL(processStep()),mTomasuloAlgorithm,SLOT(processStep()));
 
 
@@ -182,58 +186,87 @@ void MainWindow::initializeWindow()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 }
 
-void MainWindow::popupStartMenu()
-{
-    QPoint mousePT = this->mapToGlobal(QCursor::pos());
-    QMenu* popup = new QMenu(this);
+//void MainWindow::popupStartMenu()
+//{
+//    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
+//        QMessageBox::critical(this,"Error Starting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm cannot be started.");
+//        return;
+//    }
+//    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+//        QMessageBox::critical(this,"Error Starting Algorithm","Algorithm is either in progress or done.\nAlgorithm must be reset before it can be restarted.");
+//        return;
+//    }
 
-    QAction* manualAction = new QAction("Manual Step",this);
-    QAction* clockAction = new QAction("Clock Step",this);
-    QAction* automaticAction = new QAction("Full Speed",this);
-    popup->addAction(manualAction);
-    popup->addAction(clockAction);
-    popup->addAction(automaticAction);
+//    QPoint mousePT = this->mapToGlobal(QCursor::pos());
+//    QMenu* popup = new QMenu(this);
 
-    QAction* chosenAction = popup->exec(mousePT);
-    if(chosenAction==manualAction){
-        mStatusBarLayout->removeWidget(mStatusBarStartButton);
-        mStatusBarLayout->addWidget(mStatusBarStepButton);
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
-    }
-    else if(chosenAction==clockAction){
-        bool ok;
-        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
-        if(!ok){
-            return;
-        }
-        mStatusBarLayout->removeWidget(mStatusBarStartButton);
-        mStatusBarLayout->addWidget(mStatusBarPauseButton);
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+//    QAction* manualAction = new QAction("Manual Step",this);
+//    QAction* clockAction = new QAction("Clock Step",this);
+//    QAction* automaticAction = new QAction("Full Speed",this);
+//    popup->addAction(manualAction);
+//    popup->addAction(clockAction);
+//    popup->addAction(automaticAction);
 
-        mRunClock->setInterval(val);
-        mRunClock->start();
-    }
-    else if(chosenAction==automaticAction){
-        mStatusBarStartButton->setText("Pause");
-        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
-        this->fullSpeedStep();
-    }
-    else{
-        return;
-    }
-}
+//    QAction* chosenAction = popup->exec(mousePT);
+//    if(chosenAction==manualAction){
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mStatusBarLayout->addWidget(mStatusBarStepButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
+//    }
+//    else if(chosenAction==clockAction){
+//        bool ok;
+//        float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+//        if(!ok){
+//            return;
+//        }
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+
+//        mRunClock->setInterval(val*1000);
+//        mRunClock->start();
+//    }
+//    else if(chosenAction==automaticAction){
+//        mStatusBarLayout->addWidget(mStatusBarPauseButton);
+//        mStatusBarLayout->removeWidget(mStatusBarStartButton);
+//        mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
+//        this->fullSpeedStep();
+//    }
+//    else{
+//        return;
+//    }
+//}
 
 void MainWindow::individualStep()
 {
     emit processStep();
     updateAllTables();
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        if(mRunClock->isActive()){
+            ui->actionPause_Algorithm->setEnabled(false);
+            mRunClock->stop();
+        }
+        else{
+            ui->actionStep_Algorithm->setEnabled(false);
+        }
+    }
 }
 
 void MainWindow::fullSpeedStep()
 {
-    while(!mTomasuloAlgorithm->isDone() && mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Paused){
+    while(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Done && mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::Paused){
         emit processStep();
         updateAllTables();
+    }
+
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
     }
 }
 
@@ -241,14 +274,20 @@ void MainWindow::pauseClock()
 {
     if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::ClockStep){
         mRunClock->stop();
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+        qDebug()<<"clock step paused";
     }
     else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::AutomaticStep){
-        mStatusBarLayout->removeWidget(mStatusBarPauseButton);
-        mStatusBarLayout->addWidget(mStatusBarStartButton);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
         mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::Paused);
+        qDebug()<<"automatic step paused";
     }
     else{
         QMessageBox::critical(this,"Error With Pause Button","Run status not accounted for: "+QString::number(static_cast<int>(mTomasuloAlgorithm->getRunStatus())));
@@ -257,6 +296,7 @@ void MainWindow::pauseClock()
 
 void MainWindow::updateAllTables()
 {
+    ui->clockCountLabelStatusTab->setText(QString::number(mTomasuloAlgorithm->clockCycle()-1));
     populateFunctionalUnitReservationTable();
     populateCommonDataBusAndRegisterTable();
     populateMemoryReservationTable();
@@ -273,7 +313,15 @@ void MainWindow::on_actionCreate_Architecture_triggered()
 
 void MainWindow::on_actionLoad_Architecture_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedArchitectureFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Architecture File","There is an architecture that is already loaded.\n To load an architecture file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Architecture File","Algorithm is already running.\n To load an architecture file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Architecture File", ARCHITECTURE_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
@@ -302,38 +350,42 @@ void MainWindow::loadArchitecture(QString filename)
         switch (fu.mFunctionalUnitType) {
         case FunctionalUnitType::Arithmetic:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                GeneralFunctionalUnit gfu;
-                gfu.mFunctionalUnit = fu;
-                gfu.mFunctionalUnit.mName = gfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                GeneralFunctionalUnit* gfu = new GeneralFunctionalUnit();
+                gfu->mFunctionalUnit = fu;
+                gfu->mFunctionalUnit.mName = gfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mGeneralFunctionalUnitList->append(gfu);
             }
             break;
         }
         case FunctionalUnitType::Memory:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                MemoryFunctionalUnit mfu;
-                mfu.mFunctionalUnit = fu;
-                mfu.mFunctionalUnit.mName = mfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                MemoryFunctionalUnit* mfu = new MemoryFunctionalUnit();
+                mfu->mFunctionalUnit = fu;
+                mfu->mFunctionalUnit.mName = mfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mMemoryFunctionalUnitList->append(mfu);
             }
             break;
         }
         case FunctionalUnitType::CommonDataBus:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                CommonDataBusFunctionalUnit cdbfu;
-                cdbfu.mFunctionalUnit = fu;
-                cdbfu.mFunctionalUnit.mName = cdbfu.mFunctionalUnit.mName + " " + QString::number(i+1);
+                CommonDataBusFunctionalUnit* cdbfu = new CommonDataBusFunctionalUnit();
+                cdbfu->mFunctionalUnit = fu;
+                cdbfu->mFunctionalUnit.mName = cdbfu->mFunctionalUnit.mName + " " + QString::number(i+1);
                 mCommonDataBusFunctionalUnitList->append(cdbfu);
             }
             break;
         }
         case FunctionalUnitType::Register:{
             for (int i = 0; i<fu.mFunctionalUnitCount; i++) {
-                RegisterFunctionalUnit rfu;
-                rfu.mFunctionalUnit = fu;
-                rfu.mFunctionalUnit.mName = rfu.mFunctionalUnit.mName + QString::number(i);
+                RegisterFunctionalUnit* rfu = new RegisterFunctionalUnit();
+                rfu->mFunctionalUnit = fu;
+                rfu->mFunctionalUnit.mName = rfu->mFunctionalUnit.mName + QString::number(i);
                 mRegisterFunctionalUnitList->append(rfu);
             }
+            break;
+        }
+        case FunctionalUnitType::Issuer:{
+            mTomasuloAlgorithm->setIssueNumber(fu.mFunctionalUnitCount);
             break;
         }
         default:{
@@ -374,9 +426,14 @@ void MainWindow::populateFunctionalUnitReservationTable()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mGeneralFunctionalUnitList->length(); i++) {
-        model->setData(model->index(1 + i,0),mGeneralFunctionalUnitList->at(i).mCountDown);
+        if(mGeneralFunctionalUnitList->at(i)->mCountDown<0){
+            model->setData(model->index(1 + i,0),"-");
+        }
+        else{
+            model->setData(model->index(1 + i,0),mGeneralFunctionalUnitList->at(i)->mCountDown);
+        }
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,1),mGeneralFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i,1),mGeneralFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
         QWidget* widget = new QWidget();
         QHBoxLayout* layout = new QHBoxLayout();
@@ -385,11 +442,11 @@ void MainWindow::populateFunctionalUnitReservationTable()
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(new QCheckBox(""));
         ui->functionalUnitReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
-        model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i)->mOperation);
         model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,4),mGeneralFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i,4),mGeneralFunctionalUnitList->at(i)->mSourceOne);
         model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,5),mGeneralFunctionalUnitList->at(i).mSourceTwo);
+        model->setData(model->index(1 + i,5),mGeneralFunctionalUnitList->at(i)->mSourceTwo);
         model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }
@@ -409,17 +466,17 @@ void MainWindow::populateCommonDataBusAndRegisterTable()
     model->setData(model->index(3,0), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++) {
-        model->setData(model->index(2, 1 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(2, 1 + i), mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(2, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(2, 2 + i), mCommonDataBusFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
-        model->setData(model->index(2, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(3, 1 + i), mCommonDataBusFunctionalUnitList->at(i)->mFunctionalUnitWithClaim);
+        model->setData(model->index(3, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 
     for (int i = 0; i<mRegisterFunctionalUnitList->length(); i++) {
-        model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(0, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(0, 2 + i), mRegisterFunctionalUnitList->at(i).mFunctionalUnitWithClaim);
-        model->setData(model->index(0, 2 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        model->setData(model->index(1, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim);
+        model->setData(model->index(1, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }
 
@@ -440,9 +497,9 @@ void MainWindow::populateMemoryReservationTable()
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mMemoryFunctionalUnitList->length(); i++) {
-        model->setData(model->index(1 + i, 0), mMemoryFunctionalUnitList->at(i).mFunctionalUnit.mName);
+        model->setData(model->index(1 + i, 0), mMemoryFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(1 + i, 0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i, 1), mMemoryFunctionalUnitList->at(i).mOperation);
+        model->setData(model->index(1 + i, 1), mMemoryFunctionalUnitList->at(i)->mOperation);
         model->setData(model->index(1 + i, 1), Qt::AlignCenter, Qt::TextAlignmentRole);
         QWidget* widget = new QWidget();
         QHBoxLayout* layout = new QHBoxLayout();
@@ -451,7 +508,7 @@ void MainWindow::populateMemoryReservationTable()
         layout->setContentsMargins(0, 0, 0, 0);
         layout->addWidget(new QCheckBox(""));
         ui->memoryReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
-        model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i).mSourceOne);
+        model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i)->mSourceOne);
         model->setData(model->index(1 + i, 3), Qt::AlignCenter, Qt::TextAlignmentRole);
     }
 }
@@ -482,7 +539,15 @@ void MainWindow::on_actionEdit_Instruction_List_triggered()
 
 void MainWindow::on_actionLoad_Instruction_List_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedInstructionListFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Instruction List File","There is an istruction list that is already loaded.\n To load an instruction list file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Instruction List File","Algorithm is already running.\n To load an instruction list file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Instruction List File", INSTRUCTION_LIST_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
@@ -505,13 +570,18 @@ void MainWindow::on_actionEdit_Script_triggered()
 
 void MainWindow::on_actionLoad_Script_triggered()
 {
-    if(!checkNotRunning()) return;
+    if(mLoadedScriptFile->text()!="N/A") {
+        QMessageBox::critical(this, "Error Loading Script File","There is a script that is already loaded.\n To load an script file, reset the algorithm.");
+        return;
+    }
+
+    if(!checkNotRunning()) {
+        QMessageBox::critical(this, "Error Loading Script File","Algorithm is already running.\n To load a script file, reset the algorithm.");
+        return;
+    }
 
     QString filename = QFileDialog::getOpenFileName(this, "Select Script File", SCRIPT_FILES_DIRECTORY_PATH, "Text Files (*.txt)");
     if(filename.isEmpty()) return;
-
-    mLoadedScriptFile->setText(filename.split("/").last().split(".").first());
-    mLoadedScriptFile->setToolTip(filename);
 
     loadScript(filename);
 }
@@ -532,7 +602,7 @@ void MainWindow::loadScript(QString filename)
     mScriptInstructionList->clear();
     QTextStream inFileStream(&inFile);
     QString iString;
-    ScriptInstruction scrInst;
+    ScriptInstruction *scrInst;
     while(!inFileStream.atEnd()){
         iString = inFileStream.readLine();
         try {
@@ -542,19 +612,22 @@ void MainWindow::loadScript(QString filename)
         }
 
         for (int i = 0; i<mInstructionList->length(); i++) {
-            if(mInstructionList->at(i).mName == scrInst.mInstructionName){
-                scrInst.mInstruction = mInstructionList->at(i);
+            if(mInstructionList->at(i).mName == scrInst->mInstructionName){
+                scrInst->mInstruction = mInstructionList->at(i);
                 mScriptInstructionList->append(scrInst);
                 break;
             }
             if(i == mInstructionList->length()-1){
-                QMessageBox::critical(this, "Error Bad Script Import", "Instruction could not be found in instruction list: " + scrInst.mInstructionName);
+                QMessageBox::critical(this, "Error Bad Script Import", "Instruction could not be found in instruction list: " + scrInst->mInstructionName);
                 mScriptInstructionList->clear();
                 return;
             }
         }
     }
     inFile.close();
+
+    mLoadedScriptFile->setText(filename.split("/").last().split(".").first());
+    mLoadedScriptFile->setToolTip(filename);
 
     populateInstructionTable();
     populateExecutionTable();
@@ -597,7 +670,7 @@ bool MainWindow::checkNotRunning()
         }
         clearAllTables();
     }
-    else if(mTomasuloAlgorithm->isDone()){
+    else if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::Done){
         int ret = QMessageBox::warning(this,"Load Error","Algorithm is done. Do you wish to reset the algorithm?\nThis will clear all tables.",QMessageBox::Yes | QMessageBox::No, QMessageBox::No);
         if(ret==QMessageBox::No){
             return false;
@@ -632,24 +705,24 @@ void MainWindow::populateInstructionTable()
     model->setData(model->index(0,6), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mScriptInstructionList->length(); i++) {
-        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName);
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i)->mInstructionName);
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mDestinationRegister);
+        model->setData(model->index(1 + i,1),mScriptInstructionList->at(i)->mDestinationRegister);
         model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mSourceOneRegister);
+        model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mSourceOneRegister);
         model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,3),mScriptInstructionList->at(i)->mSourceTwoRegister);
         model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
-        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
-            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mIssueClockCycle);
+        if(mScriptInstructionList->at(i)->mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i)->mIssueClockCycle);
             model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        if(mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
-            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+        if(mScriptInstructionList->at(i)->mExecutionCompletionClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i)->mExecutionCompletionClockCycle);
             model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
-            model->setData(model->index(1 + i,6),mScriptInstructionList->at(i).mWriteResultClockCycle);
+        if(mScriptInstructionList->at(i)->mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,6),mScriptInstructionList->at(i)->mWriteResultClockCycle);
             model->setData(model->index(1 + i,6), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
@@ -677,35 +750,35 @@ void MainWindow::populateExecutionTable()
     model->setData(model->index(0,5), Qt::AlignCenter, Qt::TextAlignmentRole);
 
     for (int i = 0; i<mScriptInstructionList->length(); i++) {
-        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i).mInstructionName+" "+mScriptInstructionList->at(i).mDestinationRegister+" "+mScriptInstructionList->at(i).mSourceOneRegister+" "+mScriptInstructionList->at(i).mSourceTwoRegister);
+        model->setData(model->index(1 + i,0),mScriptInstructionList->at(i)->mInstructionName+" "+mScriptInstructionList->at(i)->mDestinationRegister+" "+mScriptInstructionList->at(i)->mSourceOneRegister+" "+mScriptInstructionList->at(i)->mSourceTwoRegister);
         model->setData(model->index(1 + i,0), Qt::AlignCenter, Qt::TextAlignmentRole);
 
-        if(mScriptInstructionList->at(i).mIssueClockCycle>=0){
-            model->setData(model->index(1 + i,1),mScriptInstructionList->at(i).mIssueClockCycle);
+        if(mScriptInstructionList->at(i)->mIssueClockCycle>=0){
+            model->setData(model->index(1 + i,1),mScriptInstructionList->at(i)->mIssueClockCycle);
             model->setData(model->index(1 + i,1), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0 && mScriptInstructionList->at(i).mExecutionCompletionClockCycle>=0){
-                    model->setData(model->index(1 + i,2),QString::number(mScriptInstructionList->at(i).mExecutionStartClockCycle)+"-"+QString::number(mScriptInstructionList->at(i).mExecutionCompletionClockCycle));
+        if(mScriptInstructionList->at(i)->mExecutionStartClockCycle>=0 && mScriptInstructionList->at(i)->mExecutionCompletionClockCycle>=0){
+                    model->setData(model->index(1 + i,2),QString::number(mScriptInstructionList->at(i)->mExecutionStartClockCycle)+"-"+QString::number(mScriptInstructionList->at(i)->mExecutionCompletionClockCycle));
                     model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
-        else if(mScriptInstructionList->at(i).mExecutionStartClockCycle>=0){
-            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i).mExecutionCompletionClockCycle);
+        else if(mScriptInstructionList->at(i)->mExecutionStartClockCycle>=0){
+            model->setData(model->index(1 + i,2),mScriptInstructionList->at(i)->mExecutionStartClockCycle);
             model->setData(model->index(1 + i,2), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mReadAccessClockCycle>=0){
-            model->setData(model->index(1 + i,3),mScriptInstructionList->at(i).mReadAccessClockCycle);
+        if(mScriptInstructionList->at(i)->mReadAccessClockCycle>=0){
+            model->setData(model->index(1 + i,3),mScriptInstructionList->at(i)->mReadAccessClockCycle);
             model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mWriteResultClockCycle>=0){
-            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i).mWriteResultClockCycle);
+        if(mScriptInstructionList->at(i)->mWriteResultClockCycle>=0){
+            model->setData(model->index(1 + i,4),mScriptInstructionList->at(i)->mWriteResultClockCycle);
             model->setData(model->index(1 + i,4), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
 
-        if(mScriptInstructionList->at(i).mCommitClockCycle>=0){
-            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i).mCommitClockCycle);
+        if(mScriptInstructionList->at(i)->mCommitClockCycle>=0){
+            model->setData(model->index(1 + i,5),mScriptInstructionList->at(i)->mCommitClockCycle);
             model->setData(model->index(1 + i,5), Qt::AlignCenter, Qt::TextAlignmentRole);
         }
     }
@@ -723,6 +796,8 @@ void MainWindow::clearAllTables()
     mLoadedArchitectureFile->setText("N/A");
     mLoadedInstructionListFile->setText("N/A");
     mLoadedScriptFile->setText("N/A");
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::NotStarted);
+    ui->clockCountLabelStatusTab->setText(QString::number(mTomasuloAlgorithm->clockCycle()));
 
     populateFunctionalUnitReservationTable();
     populateCommonDataBusAndRegisterTable();
@@ -731,9 +806,179 @@ void MainWindow::clearAllTables()
     populateExecutionTable();
 }
 
-
 void MainWindow::on_actionClose_Application_triggered()
 {
     this->close();
+}
+
+void MainWindow::unloadFiles()
+{
+    clearAllTables();
+}
+
+void MainWindow::resetAlgorithm()
+{
+    if(mLoadedArchitectureFile->text()=="N/A" ||mLoadedInstructionListFile->text()=="N/A" ||mLoadedScriptFile->text()=="N/A"){
+        QMessageBox::critical(this,"Error Resetting Algorithm","Atleast one file has not been imported.\nTherefore the algorithm should not be running and cannot be reset.");
+        return;
+    }
+    if(mTomasuloAlgorithm->getRunStatus()==TomasuloRunStatus::NotStarted){
+        QMessageBox::critical(this,"Error Resetting Algorithm","Algorithm has not been started so it cannot be reset.");
+        return;
+    }
+
+    QString archFile, instListFile, scriptFile;
+    archFile = mLoadedArchitectureFile->toolTip();
+    instListFile = mLoadedInstructionListFile->toolTip();
+    scriptFile = mLoadedScriptFile->toolTip();
+    mTomasuloAlgorithm->reset();
+    clearAllTables();
+
+    loadArchitecture(archFile);
+    loadInstructionList(instListFile);
+    loadScript(scriptFile);
+}
+
+void MainWindow::on_actionUnload_Files_triggered()
+{
+    unloadFiles();
+}
+
+
+void MainWindow::on_actionReset_Algorithm_triggered()
+{
+    resetAlgorithm();
+    ui->actionReset_Algorithm->setEnabled(false);
+}
+
+
+void MainWindow::on_actionLoad_Files_triggered()
+{
+    on_actionLoad_Architecture_triggered();
+    on_actionLoad_Instruction_List_triggered();
+    on_actionLoad_Script_triggered();
+}
+
+void MainWindow::on_actionStep_Algorithm_triggered()
+{
+    individualStep();
+}
+
+void MainWindow::on_actionPause_Algorithm_triggered()
+{
+    pauseClock();
+}
+
+
+void MainWindow::on_actionManual_Step_Algorithm_triggered()
+{
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ManualStep);
+}
+
+
+void MainWindow::on_actionClock_Step_Algorithm_triggered()
+{
+    bool ok;
+    float val = QInputDialog::getDouble(this,"Clock Speed","What would you like the clock cycle to be?",1.00,0.1,5,2,&ok);
+    if(!ok){
+        return;
+    }
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::ClockStep);
+
+    mRunClock->setInterval(val*1000);
+    mRunClock->start();
+}
+
+
+void MainWindow::on_actionFull_Speed_Algorithm_triggered()
+{
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::AutomaticStep);
+    this->fullSpeedStep();
+}
+
+
+void MainWindow::on_actionPrerun_Check_triggered()
+{
+    if(mLoadedArchitectureFile->text()=="N/A" || mLoadedInstructionListFile->text()=="N/A" || mLoadedScriptFile->text()=="N/A"){
+        QMessageBox::critical(this,"Prerun Check Error","Atleast one file has not been loaded.\nNeeded:\nArchitecture File\nInstruction List File\nScript File");
+        return;
+    }
+
+    if(mTomasuloAlgorithm->getRunStatus()!=TomasuloRunStatus::NotStarted){
+        QMessageBox::critical(this,"Prerun Check Error","Algorithm is currently in progress, it must be reset.");
+        return;
+    }
+
+    mTomasuloAlgorithm->setRunStatus(TomasuloRunStatus::PrerunCheckComplete);
+    QMessageBox::information(this,"Prerun Check Completion","Prerun check is clear.");
+}
+
+void MainWindow::updateRunStatusOptions()
+{
+    switch (mTomasuloAlgorithm->getRunStatus()) {
+    case TomasuloRunStatus::NotStarted:
+        ui->actionPrerun_Check->setEnabled(true);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::PrerunCheckComplete:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::ManualStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(true);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::ClockStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(true);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::AutomaticStep:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(false);
+        break;
+    case TomasuloRunStatus::Paused:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(true);
+        ui->actionClock_Step_Algorithm->setEnabled(true);
+        ui->actionFull_Speed_Algorithm->setEnabled(true);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    case TomasuloRunStatus::Done:
+        ui->actionPrerun_Check->setEnabled(false);
+        ui->actionManual_Step_Algorithm->setEnabled(false);
+        ui->actionClock_Step_Algorithm->setEnabled(false);
+        ui->actionFull_Speed_Algorithm->setEnabled(false);
+        ui->actionStep_Algorithm->setEnabled(false);
+        ui->actionPause_Algorithm->setEnabled(false);
+        ui->actionReset_Algorithm->setEnabled(true);
+        break;
+    }
 }
 

@@ -31,6 +31,8 @@ public:
     ~MainWindow();
 
 private slots:
+    void pauseClock();
+
     void on_actionCreate_Architecture_triggered();
 
     void on_actionLoad_Architecture_triggered();
@@ -51,11 +53,31 @@ private slots:
 
     void on_actionClose_Application_triggered();
 
-    void popupStartMenu();
+//    void popupStartMenu();
 
     void individualStep();
 
     void fullSpeedStep();
+
+    void on_actionUnload_Files_triggered();
+
+    void on_actionReset_Algorithm_triggered();
+
+    void on_actionLoad_Files_triggered();
+
+    void on_actionStep_Algorithm_triggered();
+
+    void on_actionPause_Algorithm_triggered();
+
+    void on_actionManual_Step_Algorithm_triggered();
+
+    void on_actionClock_Step_Algorithm_triggered();
+
+    void on_actionFull_Speed_Algorithm_triggered();
+
+    void on_actionPrerun_Check_triggered();
+
+    void updateRunStatusOptions();
 
 private:
     Ui::MainWindow *ui;
@@ -67,26 +89,21 @@ private:
     // Run Capability Stuff
     QTimer* mRunClock = new QTimer();
     void startClock();
-    void pauseClock();
     void updateAllTables();
 
     // Status bar widgets and such
     QWidget* mStatusBarWidget = nullptr;
-    QLabel* mStatusBarLabel = nullptr;
-    QPushButton* mStatusBarStartButton = new QPushButton("Start");
-    QPushButton* mStatusBarPauseButton = new QPushButton("Pause");
-    QPushButton* mStatusBarStepButton = new QPushButton("Step");
     QHBoxLayout* mStatusBarLayout = nullptr;
     QLabel* mLoadedArchitectureFile = nullptr;
     QLabel* mLoadedInstructionListFile = nullptr;
     QLabel* mLoadedScriptFile = nullptr;
 
     // Lists to keep track of instructions, memory functional units, other funcitonal units, and registers
-    QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit>();
-    QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit>();
-    QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit>();
-    QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit>();
-    QList<ScriptInstruction>* mScriptInstructionList = new QList<ScriptInstruction>();
+    QList<GeneralFunctionalUnit*>* mGeneralFunctionalUnitList = new QList<GeneralFunctionalUnit*>();
+    QList<MemoryFunctionalUnit*>* mMemoryFunctionalUnitList = new QList<MemoryFunctionalUnit*>();
+    QList<RegisterFunctionalUnit*>* mRegisterFunctionalUnitList = new QList<RegisterFunctionalUnit*>();
+    QList<CommonDataBusFunctionalUnit*>* mCommonDataBusFunctionalUnitList = new QList<CommonDataBusFunctionalUnit*>();
+    QList<ScriptInstruction*>* mScriptInstructionList = new QList<ScriptInstruction*>();
     QList<Instruction>* mInstructionList = new QList<Instruction>();
 
     void populateFunctionalUnitReservationTable();
@@ -101,6 +118,8 @@ private:
     void loadArchitecture(QString filename);
     void loadScript(QString filename);
     void loadInstructionList(QString filename);
+    void unloadFiles();
+    void resetAlgorithm();
     bool checkNotRunning();
 
 signals:

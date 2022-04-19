@@ -9,51 +9,73 @@
 
 enum TomasuloRunStatus{
     NotStarted,
+    PrerunCheckComplete,
     ManualStep,
     ClockStep,
     AutomaticStep,
-    Paused
+    Paused,
+    Done
 };
 
 class TomasuloAlgorithm : public QObject
 {
     Q_OBJECT
 public:
-    explicit TomasuloAlgorithm(QList<GeneralFunctionalUnit>* generalFunctionalUnitList,
-                               QList<MemoryFunctionalUnit>* memoryFunctionalUnitList,
-                               QList<RegisterFunctionalUnit>* registerFunctionalUnitList,
-                               QList<CommonDataBusFunctionalUnit>* commonDataBusFunctionalUnitList,
-                               QList<ScriptInstruction>* scriptInstructionList,\
+    explicit TomasuloAlgorithm(QList<GeneralFunctionalUnit*>* generalFunctionalUnitList,
+                               QList<MemoryFunctionalUnit*>* memoryFunctionalUnitList,
+                               QList<RegisterFunctionalUnit*>* registerFunctionalUnitList,
+                               QList<CommonDataBusFunctionalUnit*>* commonDataBusFunctionalUnitList,
+                               QList<ScriptInstruction*>* scriptInstructionList,\
                                int issueNumber,
                                QObject *parent = nullptr);
 
-    bool isDone() const;
 
     TomasuloRunStatus getRunStatus() const;
     void setRunStatus(TomasuloRunStatus newRunStatus);
 
+    int issueNumber() const;
+    void setIssueNumber(int newIssueNumber);
+
+    unsigned int currentInstruction() const;
+    void setCurrentInstruction(unsigned int newCurrentInstruction);
+
+    unsigned int clockCycle() const;
+
+    void reset();
+
 signals:
     void StepDone();
+
+    void UpdateRunStatus();
 
 public slots:
     void processStep();
 
 private:
-    QList<GeneralFunctionalUnit>* mGeneralFunctionalUnitList;
-    QList<MemoryFunctionalUnit>* mMemoryFunctionalUnitList;
-    QList<RegisterFunctionalUnit>* mRegisterFunctionalUnitList;
-    QList<CommonDataBusFunctionalUnit>* mCommonDataBusFunctionalUnitList;
-    QList<ScriptInstruction>* mScriptInstructionList;
+    QList<GeneralFunctionalUnit*>* mGeneralFunctionalUnitList;
+    QList<MemoryFunctionalUnit*>* mMemoryFunctionalUnitList;
+    QList<RegisterFunctionalUnit*>* mRegisterFunctionalUnitList;
+    QList<CommonDataBusFunctionalUnit*>* mCommonDataBusFunctionalUnitList;
+    QList<ScriptInstruction*>* mScriptInstructionList;
 
-    unsigned int currentInstruction = 0;
+    unsigned int mCurrentInstruction = 0;
     unsigned int mClockCycle = 1;
-    bool done = false;
     int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
 
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
-    bool issueInstruction(ScriptInstruction* ins);
+    void issueInstructions();
+    bool doDependenciesExist(ScriptInstruction* ins);
+    void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
+    void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
+    void undoRegisterDependencies(ScriptInstruction* instruct);
+    void undoCommonDataBusDependencies(ScriptInstruction* instruct);
+    int getUnissuedInstructionIndex();
+    GeneralFunctionalUnit* getOptimalGeneralFunctionalUnit(ScriptInstruction* ins);
+    MemoryFunctionalUnit* getOptimalMemoryFunctionalUnit(ScriptInstruction* ins);
+    MemoryFunctionalUnit* getRegisterFunctionalUnit(MemoryFunctionalUnit* unit);
+    void issueInsToRegUnit(ScriptInstruction *ins);
 };
 
 #endif // TOMASULOALGORITHM_H

@@ -33,6 +33,13 @@ ArchitectureFileEditorDialog::ArchitectureFileEditorDialog(QWidget *parent, QStr
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::Register), e);
         }
+
+        try {
+            FunctionalUnit issuer = StringToFunctionalUnit("Issuer: Count{1}, Latency{0}, ReservationStationCount{0}, FunctionalUnitType{Issuer}, DataType{}, ArithmeticOptions{}, MemoryOptions{}");
+            mFunctionalUnitList->append(issuer);
+        }  catch (QString e) {
+            QMessageBox::critical(this, "Error Creating Default "+ToString(FunctionalUnitType::Issuer), e);
+        }
     }
 
     this->populateArchitectureItemTable();
@@ -68,7 +75,7 @@ void ArchitectureFileEditorDialog::on_addItemPushButton_clicked()
 {
     ArchitectureItemEditorDialog dlg(this);
     if(dlg.exec()){
-        //qDebug()<<QString::fromStdString(ToString(dlg.returnFunctionalUnit()));
+        //qDebug()<<ToString(dlg.returnFunctionalUnit());
         mFunctionalUnitList->append(dlg.returnFunctionalUnit());
         this->populateArchitectureItemTable();
     }
