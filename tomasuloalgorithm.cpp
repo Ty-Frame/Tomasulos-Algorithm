@@ -21,7 +21,7 @@ TomasuloAlgorithm::TomasuloAlgorithm(QList<GeneralFunctionalUnit*>* generalFunct
 void TomasuloAlgorithm::processStep()
 {
     /* ---Entire Process---
-     * Empty Common Data Buses
+     * Empty Common Data Bus with the first issued instruction
      * Move earliest issued AND completed instructions into a Common Data Bus OR memory related instrucitons that are in readwrite
      * If instruction is moved from the functional unit to Common Data Bus
      * Stage all functional units
@@ -29,20 +29,32 @@ void TomasuloAlgorithm::processStep()
      */
 
     // Empty Data Buses
-    CommonDataBusFunctionalUnit* cdbfu;
+    CommonDataBusFunctionalUnit* cdbfu = nullptr;
     for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
-        cdbfu = mCommonDataBusFunctionalUnitList->at(i);
-        if(cdbfu->mBusy){
-            if(cdbfu->mScriptInstruction!=nullptr){
-                cdbfu->mScriptInstruction->mCurrentPipelineStage = PipelineStages::Done;
-                cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
-                undoCommonDataBusDependencies(cdbfu->mScriptInstruction);
-                qDebug()<<"Instruction Exited CDB: "<<cdbfu->mScriptInstruction->mInstructionWhole<<" CC: "<<mClockCycle;
-            }
-            cdbfu->mScriptInstruction = nullptr;
-            cdbfu->mFunctionalUnitWithClaim = "";
-            cdbfu->mBusy = false;
+        if(cdbfu==nullptr && mCommonDataBusFunctionalUnitList->at(i)->mBusy){
+            cdbfu = mCommonDataBusFunctionalUnitList->at(i);
         }
+        else if(cdbfu!=nullptr && mCommonDataBusFunctionalUnitList->at(i)->mBusy){
+            if(mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction->mIssueClockCycle<cdbfu->mScriptInstruction->mIssueClockCycle){
+                cdbfu = mCommonDataBusFunctionalUnitList->at(i);
+            }
+            else if(mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction->mIssueClockCycle==cdbfu->mScriptInstruction->mIssueClockCycle){
+                if(mCommonDataBusFunctionalUnitList->at(i)->mScriptInstruction->mIssueIndex<cdbfu->mScriptInstruction->mIssueIndex){
+                    cdbfu = mCommonDataBusFunctionalUnitList->at(i);
+                }
+            }
+        }
+    }
+    if(cdbfu!=nullptr){
+        if(cdbfu->mScriptInstruction!=nullptr){
+            cdbfu->mScriptInstruction->mCurrentPipelineStage = PipelineStages::Done;
+            cdbfu->mScriptInstruction->mCommitClockCycle = mClockCycle;
+            undoCommonDataBusDependencies(cdbfu->mScriptInstruction);
+            qDebug()<<"Instruction Exited CDB: "<<cdbfu->mScriptInstruction->mInstructionWhole<<" CC: "<<mClockCycle;
+        }
+        cdbfu->mScriptInstruction = nullptr;
+        cdbfu->mFunctionalUnitWithClaim = "";
+        cdbfu->mBusy = false;
     }
 //    qDebug()<<"Common Data Buses Emptied";
 //    qDebug()<<"Completed Instructions For Memory Functional Units Gathered";
