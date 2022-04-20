@@ -257,6 +257,9 @@ void TomasuloAlgorithm::processStep()
                         instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
                         instruction->mExecutionCompletionClockCycle = mClockCycle;
                     }
+                    else{
+                        genfu->mCountDown--;
+                    }
                     qDebug()<<instruction->mInstructionWhole<<" started execution in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                 }
             }
@@ -277,6 +280,9 @@ void TomasuloAlgorithm::processStep()
                         if(memfu->mCountDown==0){
                             instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
                             instruction->mExecutionCompletionClockCycle = mClockCycle;
+                        }
+                        else{
+                            memfu->mCountDown--;
                         }
                         qDebug()<<instruction->mInstructionWhole<<" started execution in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                     }
