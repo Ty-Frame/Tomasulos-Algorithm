@@ -138,24 +138,12 @@ inline QString ToString(Instruction a){
     }
     returnString += "}";
 
-    returnString += ", PipelineStages{";
-    for(auto pStage: AllPipelineStages){
-        if(pStage != PipelineStages::None && (a.mPipelineStages & pStage) == pStage) {
-            returnString += ToString(pStage);
-            returnString += ", ";
-        }
-    }
-    if(returnString.lastIndexOf(QString(", ")) == returnString.length()-2){
-        returnString.chop(2);
-    }
-    returnString += "}";
-
     return returnString;
 }
 
 inline Instruction StringToInstruction(QString strFU){
     Instruction isnt;
-    QString expression("(.*): InstructionType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}, PipelineStages{(.*)}");
+    QString expression("(.*): InstructionType{(.*)}, DataType{(.*)}, ArithmeticOptions{(.*)}, MemoryOptions{(.*)}");
     QRegularExpression re(expression, QRegularExpression::DotMatchesEverythingOption);
     QRegularExpressionMatch match = re.match(strFU);
 
@@ -198,15 +186,6 @@ inline Instruction StringToInstruction(QString strFU){
             isnt.mMemoryOptions = isnt.mMemoryOptions | StringToMemoryOptions(memOpt);
         }  catch (QString e) {
             throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+memOpt);
-        }
-    }
-
-    for(auto pStage : match.captured(6).split(", ")){
-        if(pStage.isEmpty()) continue;
-        try {
-            isnt.mPipelineStages = isnt.mPipelineStages | StringToPipelineStages(pStage);
-        }  catch (QString e) {
-            throw QString(e+QString("\nInput: ")+strFU+QString("\nInvalid: ")+pStage);
         }
     }
 

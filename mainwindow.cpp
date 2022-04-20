@@ -178,7 +178,7 @@ void MainWindow::initializeWindow()
     model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(0,2),QStringLiteral("Execution"));
     model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,3),QStringLiteral("Read Access"));
+    model->setData(model->index(0,3),QStringLiteral("Read/Write Access"));
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(0,4),QStringLiteral("Write on CDB"));
     model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -742,7 +742,7 @@ void MainWindow::populateExecutionTable()
     model->setData(model->index(0,1), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(0,2),QStringLiteral("Execution"));
     model->setData(model->index(0,2), Qt::AlignCenter, Qt::TextAlignmentRole);
-    model->setData(model->index(0,3),QStringLiteral("Read Access"));
+    model->setData(model->index(0,3),QStringLiteral("Read/Write Access"));
     model->setData(model->index(0,3), Qt::AlignCenter, Qt::TextAlignmentRole);
     model->setData(model->index(0,4),QStringLiteral("Write on CDB"));
     model->setData(model->index(0,4), Qt::AlignCenter, Qt::TextAlignmentRole);
