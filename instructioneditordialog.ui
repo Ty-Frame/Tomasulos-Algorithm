@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>583</width>
-    <height>330</height>
+    <width>240</width>
+    <height>184</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -39,13 +39,6 @@
    </item>
    <item>
     <widget class="QComboBox" name="memoryOptionsComboBox"/>
-   </item>
-   <item>
-    <widget class="QGroupBox" name="pipelineStagesGroupBox">
-     <property name="title">
-      <string>Pipeline Stages:</string>
-     </property>
-    </widget>
    </item>
    <item>
     <layout class="QHBoxLayout" name="horizontalLayout_2">

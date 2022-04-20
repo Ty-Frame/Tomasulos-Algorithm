@@ -15,10 +15,6 @@ InstructionEditorDialog::InstructionEditorDialog(QWidget *parent, Instruction *i
         ui->dataTypeComboBox->setCurrentText(ToString(instruction->mDataType));
         ui->arithmeticOptionsComboBox->setCurrentText(ToString(instruction->mArithmeticOptions));
         ui->memoryOptionsComboBox->setCurrentText(ToString(instruction->mMemoryOptions));
-
-        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
-            if(IsOfPipelineStages(instruction, StringToPipelineStages(cb->text()))) cb->setChecked(true);
-        }
     }
 }
 
@@ -40,14 +36,6 @@ Instruction InstructionEditorDialog::returnInstruction()
     }
     if(ui->memoryOptionsComboBox->isEnabled()){
         returnI.mMemoryOptions = returnI.mMemoryOptions | StringToMemoryOptions(ui->memoryOptionsComboBox->currentText());
-    }
-    if(ui->pipelineStagesGroupBox->isEnabled()){
-        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                //qDebug()<<"Bitwise OR: "<<cb->text();
-                returnI.mPipelineStages = returnI.mPipelineStages | StringToPipelineStages(cb->text());
-            }
-        }
     }
     return returnI;
 }
@@ -77,14 +65,6 @@ void InstructionEditorDialog::initializeDialog()
             ui->memoryOptionsComboBox->addItem(ToString(memOpt));
         }
     }
-
-    QVBoxLayout* pipelineStagesGroupBoxLayout = new QVBoxLayout();
-    ui->pipelineStagesGroupBox->setLayout(pipelineStagesGroupBoxLayout);
-    for(auto pStage: AllPipelineStages){
-        if(pStage != PipelineStages::None){
-            pipelineStagesGroupBoxLayout->addWidget(new QCheckBox(ToString(pStage)));
-        }
-    }
 }
 
 void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(const QString &arg1)
@@ -95,21 +75,18 @@ void InstructionEditorDialog::on_instructionTypeComboBox_currentTextChanged(cons
         ui->dataTypeComboBox->setEnabled(false);
         ui->arithmeticOptionsComboBox->setEnabled(false);
         ui->memoryOptionsComboBox->setEnabled(false);
-        ui->pipelineStagesGroupBox->setEnabled(false);
         break;
     }
     case InstructionType::Arithmetic:{
         ui->dataTypeComboBox->setEnabled(true);
         ui->arithmeticOptionsComboBox->setEnabled(true);
         ui->memoryOptionsComboBox->setEnabled(false);
-        ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
     case InstructionType::Memory:{
         ui->dataTypeComboBox->setEnabled(false);
         ui->arithmeticOptionsComboBox->setEnabled(false);
         ui->memoryOptionsComboBox->setEnabled(true);
-        ui->pipelineStagesGroupBox->setEnabled(true);
         break;
     }
     default: throw "[Unknown InstructionType]";
@@ -133,20 +110,6 @@ void InstructionEditorDialog::on_okPushButton_clicked()
 
     if(ui->instructionTypeComboBox->currentText() == ToString(InstructionType::None)){
         QMessageBox::critical(this,"Instruction Creation Error", "Instruction type cannot be set to "+ToString(InstructionType::None)+".");
-        return;
-    }
-
-    bool noneChecked = false;
-    if(ui->pipelineStagesGroupBox->isEnabled()){
-        noneChecked = true;
-        for(auto cb : ui->pipelineStagesGroupBox->findChildren<QCheckBox *>()){
-            if(cb->isChecked()){
-                noneChecked = false;
-            }
-        }
-    }
-    if(noneChecked){
-        QMessageBox::critical(this,"Instruction Creation Error", "Atleast one pipeline stage must be selected.");
         return;
     }
 

@@ -16,76 +16,77 @@ InstructionListFileEditorDialog::InstructionListFileEditorDialog(QWidget *parent
     ui->removeInstructionPushButton->setToolTip("Remove Instruction");
 
     if(instructionListFileName){
+        ui->instructionListNameLineEdit->setText(instructionListFileName->split("/").last().split(".").first());
         mInstructionList = readInInstructionListFile(instructionListFileName);
     }
     else{
         mInstructionList = new QList<Instruction>();
 
         try {
-            Instruction ld = StringToInstruction("ld: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Load}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction ld = StringToInstruction("ld: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Load}");
             mInstructionList->append(ld);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction str = StringToInstruction("str: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Store}, PipelineStages{Issue, Execution}");
+            Instruction str = StringToInstruction("str: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Store}");
             mInstructionList->append(str);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction add = StringToInstruction("add: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Add}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction add = StringToInstruction("add: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Add}, MemoryOptions{}");
             mInstructionList->append(add);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction sub = StringToInstruction("sub: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Subtract}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction sub = StringToInstruction("sub: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Subtract}, MemoryOptions{}");
             mInstructionList->append(sub);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction mul = StringToInstruction("mul: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Multiply}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction mul = StringToInstruction("mul: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Multiply}, MemoryOptions{}");
             mInstructionList->append(mul);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction div = StringToInstruction("div: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Divide}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction div = StringToInstruction("div: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Divide}, MemoryOptions{}");
             mInstructionList->append(div);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction addf = StringToInstruction("addf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Add}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction addf = StringToInstruction("addf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Add}, MemoryOptions{}");
             mInstructionList->append(addf);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction subf = StringToInstruction("subf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Subtract}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction subf = StringToInstruction("subf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Subtract}, MemoryOptions{}");
             mInstructionList->append(subf);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction mulf = StringToInstruction("mulf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Multiply}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction mulf = StringToInstruction("mulf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Multiply}, MemoryOptions{}");
             mInstructionList->append(mulf);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
         }
 
         try {
-            Instruction divf = StringToInstruction("divf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Divide}, MemoryOptions{}, PipelineStages{Issue, Execution, Writeback, Commit}");
+            Instruction divf = StringToInstruction("divf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Divide}, MemoryOptions{}");
             mInstructionList->append(divf);
         }  catch (QString e) {
             QMessageBox::critical(this, "Error Creating Instruction", e);
