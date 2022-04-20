@@ -76,6 +76,7 @@ private:
     MemoryFunctionalUnit* getOptimalMemoryFunctionalUnit(ScriptInstruction* ins);
     MemoryFunctionalUnit* getRegisterFunctionalUnit(MemoryFunctionalUnit* unit);
     void issueInsToRegUnit(ScriptInstruction *ins);
+    ScriptInstruction* findFirstIssued(QList<ScriptInstruction*>* instructionList);
 };
 
 #endif // TOMASULOALGORITHM_H

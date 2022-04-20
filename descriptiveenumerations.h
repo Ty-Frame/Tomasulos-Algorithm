@@ -185,16 +185,16 @@ inline ArithmeticOptions StringToArithmeticOptions(QString a){
 // PipelineStages start
 enum class PipelineStages{
     None = 0,
-    Issue = 1,
+    Issued = 1,
     Execution = 2,
     ExecutionDone = 4,
     ReadWriteAccess = 8,
     Writeback = 16,
-    Commit = 32,
-    Done = 64
+    WaitingToCommit = 32,
+    Commited = 64
 };
 
-static const PipelineStages AllPipelineStages[] = {PipelineStages::None , PipelineStages::Issue, PipelineStages::Execution, PipelineStages::ExecutionDone, PipelineStages::ReadWriteAccess, PipelineStages::Writeback, PipelineStages::Commit, PipelineStages::Done};
+static const PipelineStages AllPipelineStages[] = {PipelineStages::None , PipelineStages::Issued, PipelineStages::Execution, PipelineStages::ExecutionDone, PipelineStages::ReadWriteAccess, PipelineStages::Writeback, PipelineStages::WaitingToCommit, PipelineStages::Commited};
 
 inline PipelineStages operator|(PipelineStages a, PipelineStages b){
     return static_cast<PipelineStages>(static_cast<int>(a) | static_cast<int>(b));
@@ -207,13 +207,13 @@ inline PipelineStages operator&(PipelineStages a, PipelineStages b){
 inline const QString ToString(PipelineStages a){
     switch(a){
         case PipelineStages::None: return QString("None");
-        case PipelineStages::Issue: return QString("Issue");
+        case PipelineStages::Issued: return QString("Issued");
         case PipelineStages::Execution: return QString("Execution");
         case PipelineStages::ExecutionDone: return QString("Execution Done");
         case PipelineStages::ReadWriteAccess: return QString("Read Write Access");
         case PipelineStages::Writeback: return QString("Writeback");
-        case PipelineStages::Commit: return QString("Commit");
-        case PipelineStages::Done: return QString("Done");
+    case PipelineStages::WaitingToCommit: return QString("Waiting To Commit");
+        case PipelineStages::Commited: return QString("Commited");
         default: throw QString("[Unknown PipelineStages]");
     }
 }
