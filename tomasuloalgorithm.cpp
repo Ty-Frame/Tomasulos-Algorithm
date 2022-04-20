@@ -68,10 +68,10 @@ void TomasuloAlgorithm::processStep()
 //                                                                       exitingCdb.length()+
 //                                                                       commitPending.length()+
 //                                                                       dontCareBecuaseDone.length());
-    qDebug()<<"to be issued "<<toBeIssued.length();
-    for(int i = 0; i<toBeIssued.length(); i++){
-        qDebug()<<toBeIssued.at(i)->mInstructionWhole;
-    }
+//    qDebug()<<"to be issued "<<toBeIssued.length();
+//    for(int i = 0; i<toBeIssued.length(); i++){
+//        qDebug()<<toBeIssued.at(i)->mInstructionWhole;
+//    }
 //    qDebug()<<"";
 //    qDebug()<<"waiting to start execution "<<waitingToStartExecution.length();
 //    for(int i = 0; i<waitingToStartExecution.length(); i++){
@@ -112,11 +112,16 @@ void TomasuloAlgorithm::processStep()
     // Process Instructions trying to commit
     instruction = findFirstIssued(&commitPending);
     if(instruction!=nullptr){
-        instruction->mCommitClockCycle = mClockCycle;
-        instruction->mCurrentPipelineStage = PipelineStages::Commited;
-        qDebug()<<instruction->mInstructionWhole<<" committed at clock cycle "<<mClockCycle<<".";
-        undoRegisterDependencies(instruction);
-        undoCommonDataBusDependencies(instruction);
+        for(int i = 0; i<mScriptInstructionList->length(); i++){
+            if(instruction==mScriptInstructionList->at(i) && (i==0 || mScriptInstructionList->at(i-1)->mCurrentPipelineStage!=PipelineStages::Commited)){
+                instruction->mCommitClockCycle = mClockCycle;
+                instruction->mCurrentPipelineStage = PipelineStages::Commited;
+                qDebug()<<instruction->mInstructionWhole<<" committed at clock cycle "<<mClockCycle<<".";
+                undoRegisterDependencies(instruction);
+                undoCommonDataBusDependencies(instruction);
+                break;
+            }
+        }
     }
 //    qDebug()<<"done processing instructions trying to commit.";
 
