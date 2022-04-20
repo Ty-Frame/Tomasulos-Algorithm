@@ -113,7 +113,7 @@ void TomasuloAlgorithm::processStep()
     instruction = findFirstIssued(&commitPending);
     if(instruction!=nullptr){
         for(int i = 0; i<mScriptInstructionList->length(); i++){
-            if(instruction==mScriptInstructionList->at(i) && (i==0 || mScriptInstructionList->at(i-1)->mCurrentPipelineStage!=PipelineStages::Commited)){
+            if(instruction==mScriptInstructionList->at(i) && (i==0 || mScriptInstructionList->at(i-1)->mCurrentPipelineStage==PipelineStages::Commited)){
                 instruction->mCommitClockCycle = mClockCycle;
                 instruction->mCurrentPipelineStage = PipelineStages::Commited;
                 qDebug()<<instruction->mInstructionWhole<<" committed at clock cycle "<<mClockCycle<<".";
@@ -141,6 +141,16 @@ void TomasuloAlgorithm::processStep()
         }
     }
 //    qDebug()<<"Done processing isntructions exiting cdb.";
+
+    // Move any stores that are in read write to committed
+    for(int i = 0; i<doneReadOrWrite.length(); i++){
+        instruction = doneReadOrWrite.at(i);
+        if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
+            instruction->mCurrentPipelineStage = PipelineStages::Commited;
+            doneReadOrWrite.removeAt(i);
+            i--;
+        }
+    }
 
     // Process Instructions trying to get into a common data bus (instructions in readwrite OR are not memory instructions AND are done executing)
     QList<ScriptInstruction*> readWriteOrDoneExecutingAndNotMemoryInstructions;
