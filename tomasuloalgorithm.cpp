@@ -173,7 +173,7 @@ void TomasuloAlgorithm::processStep()
         cdb->mScriptInstruction = instruction;
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
         instruction->mWriteResultClockCycle = mClockCycle;
-        undoRegisterDependencies(instruction);
+        //undoRegisterDependencies(instruction);
         qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
 //    qDebug()<<"Done processing instructions trying to get into cdb.";
