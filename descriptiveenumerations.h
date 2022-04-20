@@ -9,10 +9,11 @@
 enum class InstructionType{
     None = 0,
     Arithmetic = 1,
-    Memory = 2
+    Memory = 2,
+    Branch = 4
 };
 
-static const InstructionType AllInstructionType[] = {InstructionType::None , InstructionType::Arithmetic, InstructionType::Memory};
+static const InstructionType AllInstructionType[] = {InstructionType::None , InstructionType::Arithmetic, InstructionType::Memory, InstructionType::Branch};
 
 inline InstructionType operator|(InstructionType a, InstructionType b){
     return static_cast<InstructionType>(static_cast<int>(a) | static_cast<int>(b));
@@ -27,6 +28,7 @@ inline const QString ToString(InstructionType a){
         case InstructionType::None: return QString("None");
         case InstructionType::Arithmetic: return QString("Arithmetic");
         case InstructionType::Memory: return QString("Memory");
+        case InstructionType::Branch: return QString("Branch");
         default: throw QString("[Unknown InstructionType]");
     }
 }
