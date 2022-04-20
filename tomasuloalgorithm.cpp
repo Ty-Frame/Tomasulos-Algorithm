@@ -146,7 +146,7 @@ void TomasuloAlgorithm::processStep()
     for(int i = 0; i<doneReadOrWrite.length(); i++){
         instruction = doneReadOrWrite.at(i);
         if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
-            instruction->mCurrentPipelineStage = PipelineStages::Commited;
+            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
             doneReadOrWrite.removeAt(i);
             i--;
         }
