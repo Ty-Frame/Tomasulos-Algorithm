@@ -269,6 +269,7 @@ void TomasuloAlgorithm::processStep()
                     instruction->mCurrentPipelineStage = PipelineStages::Execution;
                     instruction->mExecutionStartClockCycle = mClockCycle;
                     if(genfu->mCountDown==0){
+                        genfu->mCountDown--;
                         instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
                         instruction->mExecutionCompletionClockCycle = mClockCycle;
                     }
@@ -293,6 +294,7 @@ void TomasuloAlgorithm::processStep()
                         instruction->mCurrentPipelineStage = PipelineStages::Execution;
                         instruction->mExecutionStartClockCycle = mClockCycle;
                         if(memfu->mCountDown==0){
+                            memfu->mCountDown--;
                             instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
                             instruction->mExecutionCompletionClockCycle = mClockCycle;
                         }
