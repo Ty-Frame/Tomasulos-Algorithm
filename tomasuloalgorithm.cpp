@@ -200,9 +200,6 @@ void TomasuloAlgorithm::processStep()
         cdb->mBusy = true;
         cdb->mFunctionalUnitWithClaim = instruction->mDestinationRegister;
         cdb->mScriptInstruction = instruction;
-        if(instruction->mInstructionWhole.contains("beqz")){
-            qDebug()<<"Found branch at line 201";
-        }
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
         if(instruction->mInstruction.mInstructionType!=InstructionType::Branch){
             instruction->mWriteResultClockCycle = mClockCycle;
