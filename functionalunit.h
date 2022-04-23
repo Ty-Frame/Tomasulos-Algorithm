@@ -176,8 +176,8 @@ struct MemoryFunctionalUnit{
 
 struct RegisterFunctionalUnit{
     FunctionalUnit mFunctionalUnit;
-    ScriptInstruction* mInstruction = nullptr;
-    QString mFunctionalUnitWithClaim = "";
+    QList<ScriptInstruction*> mInstruction;
+    QList<QString> mFunctionalUnitWithClaim;
 };
 
 struct CommonDataBusFunctionalUnit{

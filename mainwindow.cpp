@@ -477,8 +477,10 @@ void MainWindow::populateCommonDataBusAndRegisterTable()
     for (int i = 0; i<mRegisterFunctionalUnitList->length(); i++) {
         model->setData(model->index(0, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName);
         model->setData(model->index(0, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
-        model->setData(model->index(1, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim);
-        model->setData(model->index(1, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        if(!mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.isEmpty()){
+            model->setData(model->index(1, 1 + i), mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.first());
+            model->setData(model->index(1, 1 + i), Qt::AlignCenter, Qt::TextAlignmentRole);
+        }
     }
 }
 

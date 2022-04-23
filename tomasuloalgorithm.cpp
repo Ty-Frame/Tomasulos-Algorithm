@@ -112,6 +112,7 @@ void TomasuloAlgorithm::processStep()
 //    QList<Instruction*> committedThisCycle;
 
     // Process Instructions trying to commit
+//    qDebug()<<"Very start of algorithm";
     instruction = findFirstIssued(&commitPending);
     if(instruction!=nullptr){
         for(int i = 0; i<mScriptInstructionList->length(); i++){
@@ -124,6 +125,7 @@ void TomasuloAlgorithm::processStep()
         }
     }
     for(int i = 0; i<commitPending.length(); i++){
+//        qDebug()<<"commit pending inst: "<<commitPending.at(i)->mInstructionWhole<<" at cc: "<<mClockCycle;
         instruction = commitPending.at(i);
         undoCommonDataBusDependencies(instruction);
         undoRegisterDependencies(instruction);
@@ -340,7 +342,7 @@ void TomasuloAlgorithm::processStep()
     }
     for(int i = 0; i<len; i++){
         instruction = toBeIssued.at(i);
-        qDebug()<<"attempting to issue "<<instruction->mInstructionWhole;
+//        qDebug()<<"attempting to issue "<<instruction->mInstructionWhole;
         genfu = getOptimalGeneralFunctionalUnit(instruction);
         if(genfu!=nullptr){
             setDependencies(genfu, instruction);
@@ -530,12 +532,19 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
     RegisterFunctionalUnit* rUnit;
     for(int i = 0; i<len; i++){
         rUnit = mRegisterFunctionalUnitList->at(i);
-        if(rUnit->mInstruction!=nullptr && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
-            return true;
+        if(!rUnit->mInstruction.isEmpty()){
+            if((rUnit->mInstruction.first()==ins || rUnit->mInstruction.first()==ins) &&
+                    (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle &&
+                                                                                               rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))){
+                return true;
+            }
         }
-        if(rUnit->mInstruction!=nullptr && ins->mSourceTwoRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
-            return true;
-        }
+//        if(!rUnit->mInstruction.isEmpty() && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
+//            return true;
+//        }
+//        if(!rUnit->mInstruction.isEmpty() && ins->mSourceTwoRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
+//            return true;
+//        }
     }
 
     return false;
@@ -545,7 +554,7 @@ void TomasuloAlgorithm::setDependencies(GeneralFunctionalUnit* genfu, ScriptInst
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
-            mRegisterFunctionalUnitList->at(i)->mInstruction = instruct;
+            mRegisterFunctionalUnitList->at(i)->mInstruction.append(instruct);
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.append(genfu->mFunctionalUnit.mName);
             return;
         }
@@ -556,8 +565,8 @@ void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstr
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
-            mRegisterFunctionalUnitList->at(i)->mInstruction = instruct;
-            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = memfu->mFunctionalUnit.mName;
+            mRegisterFunctionalUnitList->at(i)->mInstruction.append(instruct);
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.append(memfu->mFunctionalUnit.mName);
             return;
         }
     }
@@ -565,9 +574,12 @@ void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstr
 
 void TomasuloAlgorithm::undoRegisterDependencies(ScriptInstruction *instruct)
 {
+//    qDebug()<<"trying to undo dep: "<<instruct->mInstructionWhole;
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
         if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
-            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim = "";
+//            qDebug()<<"Unoding dependecy. Inst: "<<mRegisterFunctionalUnitList->at(i)->mInstruction.first()->mInstructionWhole<<" FU: "<<mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.first();
+            mRegisterFunctionalUnitList->at(i)->mInstruction.removeFirst();
+            mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.removeFirst();
             return;
         }
     }
