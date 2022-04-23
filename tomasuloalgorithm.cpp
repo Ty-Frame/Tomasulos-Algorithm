@@ -413,7 +413,7 @@ void TomasuloAlgorithm::processCommitPending(QList<ScriptInstruction *> *commitP
         }
     }
     for(int i = 0; i<commitPending->length(); i++){
-//        qDebug()<<"commit pending inst: "<<commitPending.at(i)->mInstructionWhole<<" at cc: "<<mClockCycle;
+        qDebug()<<"commit pending inst: "<<commitPending->at(i)->mInstructionWhole<<" at cc: "<<mClockCycle;
         instruction = commitPending->at(i);
         undoCommonDataBusDependencies(instruction);
         undoRegisterDependencies(instruction);
@@ -709,7 +709,7 @@ bool TomasuloAlgorithm::doStoreDependenciesExist(ScriptInstruction *ins)
 void TomasuloAlgorithm::setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction *instruct)
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
-        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister && !(mRegisterFunctionalUnitList->at(i)->mInstruction.contains(instruct))){
             mRegisterFunctionalUnitList->at(i)->mInstruction.append(instruct);
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.append(genfu->mFunctionalUnit.mName);
             return;
@@ -720,7 +720,7 @@ void TomasuloAlgorithm::setDependencies(GeneralFunctionalUnit* genfu, ScriptInst
 void TomasuloAlgorithm::setDependencies(MemoryFunctionalUnit *memfu, ScriptInstruction *instruct)
 {
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
-        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister && !(mRegisterFunctionalUnitList->at(i)->mInstruction.contains(instruct))){
             mRegisterFunctionalUnitList->at(i)->mInstruction.append(instruct);
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.append(memfu->mFunctionalUnit.mName);
             return;
@@ -732,8 +732,14 @@ void TomasuloAlgorithm::undoRegisterDependencies(ScriptInstruction *instruct)
 {
 //    qDebug()<<"trying to undo dep: "<<instruct->mInstructionWhole;
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
+        if(!mRegisterFunctionalUnitList->at(i)->mInstruction.isEmpty() && instruct->mInstructionWhole.contains("div")){
+            qDebug()<<mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName<<" is empty: "<<mRegisterFunctionalUnitList->at(i)->mInstruction.isEmpty();
+            qDebug()<<"number of instrucitons in register list: "<<mRegisterFunctionalUnitList->length();
+            qDebug()<<"Index of register inst in script: "<<mScriptInstructionList->indexOf(mRegisterFunctionalUnitList->at(i)->mInstruction.first());
+            qDebug()<<"Index of inst in script: "<<mScriptInstructionList->indexOf(mRegisterFunctionalUnitList->at(i)->mInstruction.first());
+        }
         if(!mRegisterFunctionalUnitList->at(i)->mInstruction.isEmpty() && mRegisterFunctionalUnitList->at(i)->mInstruction.first()==instruct){
-//            qDebug()<<"Unoding dependecy. Inst: "<<mRegisterFunctionalUnitList->at(i)->mInstruction.first()->mInstructionWhole<<" FU: "<<mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.first();
+            qDebug()<<"Unoding dependecy. Inst: "<<mRegisterFunctionalUnitList->at(i)->mInstruction.first()->mInstructionWhole<<" FU: "<<mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.first();
             mRegisterFunctionalUnitList->at(i)->mInstruction.removeFirst();
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.removeFirst();
             return;
