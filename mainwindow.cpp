@@ -440,7 +440,9 @@ void MainWindow::populateFunctionalUnitReservationTable()
         widget->setLayout(layout);
         layout->setAlignment(Qt::AlignCenter);
         layout->setContentsMargins(0, 0, 0, 0);
-        layout->addWidget(new QCheckBox(""));
+        QCheckBox* cb = new QCheckBox("");
+        cb->setChecked(mGeneralFunctionalUnitList->at(i)->mBusy);
+        layout->addWidget(cb);
         ui->functionalUnitReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
         model->setData(model->index(1 + i,3),mGeneralFunctionalUnitList->at(i)->mOperation);
         model->setData(model->index(1 + i,3), Qt::AlignCenter, Qt::TextAlignmentRole);
@@ -506,7 +508,9 @@ void MainWindow::populateMemoryReservationTable()
         widget->setLayout(layout);
         layout->setAlignment(Qt::AlignCenter);
         layout->setContentsMargins(0, 0, 0, 0);
-        layout->addWidget(new QCheckBox(""));
+        QCheckBox* cb = new QCheckBox("");
+        cb->setChecked(mGeneralFunctionalUnitList->at(i)->mBusy);
+        layout->addWidget(cb);
         ui->memoryReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
         model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i)->mSourceOne);
         model->setData(model->index(1 + i, 3), Qt::AlignCenter, Qt::TextAlignmentRole);

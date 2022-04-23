@@ -59,7 +59,7 @@ void TomasuloAlgorithm::processStep()
             break;
         }
     }
-    qDebug()<<"----------------------Clock Cycle: "<<mClockCycle;
+//    qDebug()<<"----------------------Clock Cycle: "<<mClockCycle;
 //    qDebug()<<"Total: "<<mScriptInstructionList->length()<<", Sum: "<<(toBeIssued.length()+
 //                                                                       waitingToStartExecution.length()+
 //                                                                       currentlyExecuting.length()+
