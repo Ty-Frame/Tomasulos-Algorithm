@@ -675,13 +675,13 @@ bool TomasuloAlgorithm::doStoreDependenciesExist(ScriptInstruction *ins)
                 break;
             case InstructionType::Memory:
                 if(beforeInstruction->mInstruction.mMemoryOptions==MemoryOptions::Load){
-                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0 || beforeInstruction->mWriteResultClockCycle==mClockCycle)){
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0/* || beforeInstruction->mWriteResultClockCycle==mClockCycle*/)){
                         qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                         return true;
                     }
                 }
                 else{
-                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mReadAccessClockCycle<0 || beforeInstruction->mReadAccessClockCycle==mClockCycle)){
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mReadAccessClockCycle<0/* || beforeInstruction->mReadAccessClockCycle==mClockCycle*/)){
                         qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                         return true;
                     }
