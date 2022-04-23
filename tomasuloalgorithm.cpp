@@ -138,12 +138,23 @@ void TomasuloAlgorithm::processStep()
 
     // Process done executing memory related instructions
     for(int i = 0; i<doneExecuting.length(); i++){
-        instruction = findFirstIssued(&doneExecuting);
-        if(instruction==nullptr){
-            break;
-        }
+//        instruction = findFirstIssued(&doneExecuting);
+//        if(instruction==nullptr){
+//            break;
+//        }
+        instruction = doneExecuting.at(i);
 
         clearInstructionFromMemFU(instruction);
+        if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
+            if(!doStoreDependenciesExist(instruction)){
+                instruction->mCurrentPipelineStage=PipelineStages::WaitingToCommit;
+                instruction->mReadAccessClockCycle=mClockCycle;
+            }
+            else{
+                instruction->mCurrentPipelineStage=PipelineStages::ExecutionDone;
+                instruction->mReadAccessClockCycle=-1;
+            }
+        }
     }
 //    qDebug()<<"done moving memory related instructions to readwrite.";
 
@@ -155,6 +166,13 @@ void TomasuloAlgorithm::processStep()
 
 
     processToBeIssued(&toBeIssued);
+
+    for(int i = 0; i<mScriptInstructionList->length(); i++){
+        instruction = mScriptInstructionList->at(i);
+        if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store && instruction->mCurrentPipelineStage==PipelineStages::ExecutionDone){
+
+        }
+    }
     qDebug()<<"";
 
     mClockCycle++;
@@ -423,7 +441,7 @@ void TomasuloAlgorithm::clearInstructionFromMemFU(ScriptInstruction *instruction
     MemoryFunctionalUnit* memfu;
     for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
         memfu = mMemoryFunctionalUnitList->at(j);
-        if(memfu->mBusy){
+        if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()==instruction){
             memfu->mBusy = false;
             memfu->mOperation = "";
             memfu->mSourceOne = "";
@@ -598,6 +616,59 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
             switch(beforeInstruction->mInstruction.mInstructionType){
             case InstructionType::Arithmetic:
                 if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0 || beforeInstruction->mWriteResultClockCycle==mClockCycle)){
+                    qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
+                    return true;
+                }
+                break;
+            case InstructionType::Memory:
+                if(beforeInstruction->mInstruction.mMemoryOptions==MemoryOptions::Load){
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0 || beforeInstruction->mWriteResultClockCycle==mClockCycle)){
+                        qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
+                        return true;
+                    }
+                }
+                else{
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mReadAccessClockCycle<0 || beforeInstruction->mReadAccessClockCycle==mClockCycle)){
+                        qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
+                        return true;
+                    }
+                }
+                break;
+            case InstructionType::Branch:
+//                if(beforeInstruction->mCurrentPipelineStage==PipelineStages::Execution){
+//                   qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
+//                   return true;
+//                }
+                break;
+            default:
+                qDebug()<<"ERROR IN DODEPENDENCIESEXIST";
+                return false;
+            }
+            if(sOneFound && sTwoFound){
+                return false;
+            }
+        }
+    }
+
+    return false;
+}
+
+bool TomasuloAlgorithm::doStoreDependenciesExist(ScriptInstruction *ins)
+{
+    bool sOneFound, sTwoFound = false;
+    ScriptInstruction* beforeInstruction;
+    for(int i = mScriptInstructionList->indexOf(ins)-1; i>=0; i--){
+        beforeInstruction = mScriptInstructionList->at(i);
+        if(beforeInstruction->mDestinationRegister == ins->mSourceOneRegister || beforeInstruction->mDestinationRegister == ins->mDestinationRegister){
+            if(beforeInstruction->mDestinationRegister==ins->mSourceOneRegister){
+                sOneFound = true;
+            }
+            else{
+                sTwoFound = true;
+            }
+            switch(beforeInstruction->mInstruction.mInstructionType){
+            case InstructionType::Arithmetic:
+                if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0/* || beforeInstruction->mWriteResultClockCycle==mClockCycle*/)){
                     qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                     return true;
                 }

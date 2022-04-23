@@ -78,6 +78,7 @@ private:
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
     void issueInstructions();
     bool doDependenciesExist(ScriptInstruction* ins);
+    bool doStoreDependenciesExist(ScriptInstruction* ins);
     void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
     void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
     void undoRegisterDependencies(ScriptInstruction* instruct);
