@@ -63,6 +63,17 @@ private:
     int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
 
+    void processToBeIssued(QList<ScriptInstruction*>* toBeIssued);
+    void processWaitingToStartExecution(QList<ScriptInstruction*>* waitingToStartExecution);
+    void processCurrentlyExecuting(QList<ScriptInstruction*>* currentlyExecuting);
+    void processDoneExecuting(QList<ScriptInstruction*>* doneExecuting);
+    void processDoneReadOrWrite(QList<ScriptInstruction*>* doneReadOrWrite);
+    void processExitingCdb(QList<ScriptInstruction*>* exitingCdb);
+    void processCommitPending(QList<ScriptInstruction*>* commitPending);
+
+    void clearInstructionFromGenFU(ScriptInstruction* instruction);
+    void clearInstructionFromMemFU(ScriptInstruction* instruction);
+
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
     void issueInstructions();

@@ -113,54 +113,15 @@ void TomasuloAlgorithm::processStep()
 
     // Process Instructions trying to commit
 //    qDebug()<<"Very start of algorithm";
-    instruction = findFirstIssued(&commitPending);
-    if(instruction!=nullptr){
-        for(int i = 0; i<mScriptInstructionList->length(); i++){
-            if(instruction==mScriptInstructionList->at(i) && (i==0 || mScriptInstructionList->at(i-1)->mCurrentPipelineStage==PipelineStages::Commited)){
-                instruction->mCommitClockCycle = mClockCycle;
-                instruction->mCurrentPipelineStage = PipelineStages::Commited;
-                qDebug()<<instruction->mInstructionWhole<<" committed at clock cycle "<<mClockCycle<<".";
-                break;
-            }
-        }
-    }
-    for(int i = 0; i<commitPending.length(); i++){
-//        qDebug()<<"commit pending inst: "<<commitPending.at(i)->mInstructionWhole<<" at cc: "<<mClockCycle;
-        instruction = commitPending.at(i);
-        undoCommonDataBusDependencies(instruction);
-        undoRegisterDependencies(instruction);
-    }
-//    qDebug()<<"done processing instructions trying to commit.";
+    processCommitPending(&commitPending);
 
     // Process instructions exiting cdb
-    CommonDataBusFunctionalUnit* cdb;
-    for(int i = 0; i<exitingCdb.length(); i++){
-        instruction = exitingCdb.at(i);
-        instruction->mWriteResultClockCycle = mClockCycle;
-        instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-        for(int j = 0; j<mCommonDataBusFunctionalUnitList->length(); j++){
-            cdb = mCommonDataBusFunctionalUnitList->at(j);
-            if(cdb->mBusy){
-                cdb->mBusy = false;
-                cdb->mFunctionalUnitWithClaim = "";
-                cdb->mScriptInstruction = nullptr;
-            }
-        }
-    }
-//    qDebug()<<"Done processing isntructions exiting cdb.";
+    processExitingCdb(&exitingCdb);
 
     // Move any stores that are in read write to committed
-    for(int i = 0; i<doneReadOrWrite.length(); i++){
-        instruction = doneReadOrWrite.at(i);
-        if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
-            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-            doneReadOrWrite.removeAt(i);
-            i--;
-        }
-    }
+    processDoneReadOrWrite(&doneReadOrWrite);
 
     // Process Instructions trying to get into a common data bus (instructions in readwrite OR are not memory instructions AND are done executing)
-    GeneralFunctionalUnit* genfu;
     QList<ScriptInstruction*> readWriteOrDoneExecutingAndNotMemoryInstructions;
     readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneReadOrWrite);
     for(int i = 0; i<doneExecuting.length(); i++){
@@ -173,102 +134,88 @@ void TomasuloAlgorithm::processStep()
     }
 //    readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneExecuting);
 
-    for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
-        instruction = findFirstIssued(&readWriteOrDoneExecutingAndNotMemoryInstructions);
-        if(instruction==nullptr){
-            break;
-        }
-        if(instruction->mInstruction.mInstructionType!=InstructionType::Memory){
-            for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
-                genfu = mGeneralFunctionalUnitList->at(j);
-                if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()->mInstructionWhole==instruction->mInstructionWhole){
-                    genfu->mBusy = false;
-                    genfu->mOperation = "";
-                    genfu->mSourceOne = "";
-                    genfu->mSourceTwo = "";
-                    genfu->mReservationStationList.removeFirst();
-                }
-            }
-        }
-
-        if(instruction->mInstruction.mInstructionType==InstructionType::Branch){
-            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-            readWriteOrDoneExecutingAndNotMemoryInstructions.remove(readWriteOrDoneExecutingAndNotMemoryInstructions.indexOf(instruction));
-            i--;
-            continue;
-        }
-
-        cdb = mCommonDataBusFunctionalUnitList->at(i);
-        cdb->mBusy = true;
-        cdb->mFunctionalUnitWithClaim = instruction->mDestinationRegister;
-        cdb->mScriptInstruction = instruction;
-        instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-        instruction->mWriteResultClockCycle = mClockCycle;
-        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
-    }
-//    qDebug()<<"Done processing instructions trying to get into cdb.";
+    processDoneExecuting(&readWriteOrDoneExecutingAndNotMemoryInstructions);
 
     // Process done executing memory related instructions
-    MemoryFunctionalUnit* memfu;
     for(int i = 0; i<doneExecuting.length(); i++){
         instruction = findFirstIssued(&doneExecuting);
         if(instruction==nullptr){
             break;
         }
 
-        for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
-            memfu = mMemoryFunctionalUnitList->at(j);
-            if(memfu->mBusy){
-                memfu->mBusy = false;
-                memfu->mOperation = "";
-                memfu->mSourceOne = "";
-                memfu->mReservationStationList.removeFirst();
-                instruction->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
-                instruction->mReadAccessClockCycle = mClockCycle;
-//                qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" and moved to read write at clock cycle "<<mClockCycle;
-            }
-        }
+        clearInstructionFromMemFU(instruction);
     }
 //    qDebug()<<"done moving memory related instructions to readwrite.";
 
     // Process currently executing instructions
-    for(int i = 0; i<currentlyExecuting.length(); i++){
-        instruction = currentlyExecuting.at(i);
-        if(instruction==nullptr){
-            break;
-        }
-        bool found = false;
-        for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
-            genfu = mGeneralFunctionalUnitList->at(j);
-            if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()->mInstructionWhole == instruction->mInstructionWhole){
-                found = true;
-                if(genfu->mCountDown==0){
-                    instruction->mExecutionCompletionClockCycle = mClockCycle;
-                    instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
-//                    qDebug()<<instruction->mInstructionWhole<<" done executing in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
-                }
-                genfu->mCountDown--;
-            }
-        }
-        if(!found){
-            for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
-                memfu = mMemoryFunctionalUnitList->at(j);
-                if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()->mInstructionWhole == instruction->mInstructionWhole){
-                    if(memfu->mCountDown==0){
-                        instruction->mExecutionCompletionClockCycle = mClockCycle;
-                        instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
-//                        qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
-                    }
-                    memfu->mCountDown--;
-                }
-            }
-        }
-    }
-//    qDebug()<<"done processing currecntly executing instructions";
+    processCurrentlyExecuting(&currentlyExecuting);
 
     // Process instructions waiting to start execution
-    for(int i = 0; i<waitingToStartExecution.length(); i++){
-        instruction = waitingToStartExecution.at(i);
+    processWaitingToStartExecution(&waitingToStartExecution);
+
+
+    processToBeIssued(&toBeIssued);
+    qDebug()<<"";
+
+    mClockCycle++;
+    if(mScriptInstructionList->length()==dontCareBecuaseDone.length()){
+        this->setRunStatus(TomasuloRunStatus::Done);
+    }
+    emit StepDone();
+}
+
+void TomasuloAlgorithm::processToBeIssued(QList<ScriptInstruction *> *toBeIssued)
+{
+    GeneralFunctionalUnit* genfu;
+    MemoryFunctionalUnit* memfu;
+    ScriptInstruction* instruction;
+    bool successfulIssue = false;
+    int len;
+    if(mIssueNumber<toBeIssued->length()){
+        len = mIssueNumber;
+    }
+    else{
+        len = toBeIssued->length();
+    }
+    for(int i = 0; i<len; i++){
+        instruction = toBeIssued->at(i);
+//        qDebug()<<"attempting to issue "<<instruction->mInstructionWhole;
+        genfu = getOptimalGeneralFunctionalUnit(instruction);
+        if(genfu!=nullptr){
+//            setDependencies(genfu, instruction);
+            genfu->mReservationStationList.append(instruction);
+            instruction->mIssueClockCycle = mClockCycle;
+            instruction->mCurrentPipelineStage = PipelineStages::Issued;
+            successfulIssue = true;
+//            qDebug()<<instruction->mInstructionWhole<<" issued to "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+        }
+        else{
+            memfu = getOptimalMemoryFunctionalUnit(instruction);
+            if(memfu!=nullptr){
+//                setDependencies(memfu, instruction);
+                memfu->mReservationStationList.append(instruction);
+                instruction->mIssueClockCycle = mClockCycle;
+                instruction->mCurrentPipelineStage = PipelineStages::Issued;
+                successfulIssue = true;
+//                qDebug()<<instruction->mInstructionWhole<<" issued to "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+            }
+        }
+
+        if(!successfulIssue){
+            qDebug()<<"No Successful Issue for "<<instruction->mInstructionWhole;
+            break;
+        }
+    }
+//    qDebug()<<"done processing isntructions waiting to be issued";
+}
+
+void TomasuloAlgorithm::processWaitingToStartExecution(QList<ScriptInstruction *> *waitingToStartExecution)
+{
+    ScriptInstruction* instruction;
+    GeneralFunctionalUnit* genfu;
+    MemoryFunctionalUnit*memfu;
+    for(int i = 0; i<waitingToStartExecution->length(); i++){
+        instruction = waitingToStartExecution->at(i);
         bool found = false;
         for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
             genfu = mGeneralFunctionalUnitList->at(j);
@@ -281,10 +228,12 @@ void TomasuloAlgorithm::processStep()
                     genfu->mOperation = ToString(instruction->mInstruction.mArithmeticOptions);
                     genfu->mSourceOne = instruction->mSourceOneRegister;
                     genfu->mSourceTwo = instruction->mSourceTwoRegister;
+                    setDependencies(genfu, instruction);
                     instruction->mCurrentPipelineStage = PipelineStages::Execution;
                     instruction->mExecutionStartClockCycle = mClockCycle;
                     if(genfu->mCountDown==0){
                         genfu->mCountDown--;
+//                        clearInstructionFromGenFU(instruction);
                         instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
                         instruction->mExecutionCompletionClockCycle = mClockCycle;
                     }
@@ -306,11 +255,13 @@ void TomasuloAlgorithm::processStep()
                         memfu->mCountDown = memfu->mFunctionalUnit.mLatency - 1;
                         memfu->mOperation = ToString(instruction->mInstruction.mMemoryOptions);
                         memfu->mSourceOne = instruction->mSourceOneRegister+" + "+instruction->mSourceTwoRegister;
+                        setDependencies(memfu, instruction);
                         instruction->mCurrentPipelineStage = PipelineStages::Execution;
                         instruction->mExecutionStartClockCycle = mClockCycle;
                         if(memfu->mCountDown==0){
                             memfu->mCountDown--;
                             instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
+//                            clearInstructionFromMemFU(instruction);
                             instruction->mExecutionCompletionClockCycle = mClockCycle;
                         }
                         else{
@@ -326,52 +277,166 @@ void TomasuloAlgorithm::processStep()
         }
     }
 //    qDebug()<<"done processing instructions waiting to start executing";
+}
 
-    bool successfulIssue = false;
-    int len;
-    if(mIssueNumber<toBeIssued.length()){
-        len = mIssueNumber;
-    }
-    else{
-        len = toBeIssued.length();
-    }
-    for(int i = 0; i<len; i++){
-        instruction = toBeIssued.at(i);
-//        qDebug()<<"attempting to issue "<<instruction->mInstructionWhole;
-        genfu = getOptimalGeneralFunctionalUnit(instruction);
-        if(genfu!=nullptr){
-            setDependencies(genfu, instruction);
-            genfu->mReservationStationList.append(instruction);
-            instruction->mIssueClockCycle = mClockCycle;
-            instruction->mCurrentPipelineStage = PipelineStages::Issued;
-            successfulIssue = true;
-//            qDebug()<<instruction->mInstructionWhole<<" issued to "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
-        }
-        else{
-            memfu = getOptimalMemoryFunctionalUnit(instruction);
-            if(memfu!=nullptr){
-                setDependencies(memfu, instruction);
-                memfu->mReservationStationList.append(instruction);
-                instruction->mIssueClockCycle = mClockCycle;
-                instruction->mCurrentPipelineStage = PipelineStages::Issued;
-                successfulIssue = true;
-//                qDebug()<<instruction->mInstructionWhole<<" issued to "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
-            }
-        }
-
-        if(!successfulIssue){
-            qDebug()<<"No Successful Issue for "<<instruction->mInstructionWhole;
+void TomasuloAlgorithm::processCurrentlyExecuting(QList<ScriptInstruction *> *currentlyExecuting)
+{
+    ScriptInstruction* instruction;
+    GeneralFunctionalUnit* genfu;
+    MemoryFunctionalUnit* memfu;
+    for(int i = 0; i<currentlyExecuting->length(); i++){
+        instruction = currentlyExecuting->at(i);
+        if(instruction==nullptr){
             break;
         }
+        bool found = false;
+        for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
+            genfu = mGeneralFunctionalUnitList->at(j);
+            if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()->mInstructionWhole == instruction->mInstructionWhole){
+                found = true;
+                if(genfu->mCountDown==0){
+                    instruction->mExecutionCompletionClockCycle = mClockCycle;
+                    instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
+//                    clearInstructionFromGenFU(instruction);
+//                    qDebug()<<instruction->mInstructionWhole<<" done executing in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+                }
+                genfu->mCountDown--;
+            }
+        }
+        if(!found){
+            for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
+                memfu = mMemoryFunctionalUnitList->at(j);
+                if(!memfu->mReservationStationList.isEmpty() && memfu->mReservationStationList.first()->mInstructionWhole == instruction->mInstructionWhole){
+                    if(memfu->mCountDown==0){
+                        instruction->mExecutionCompletionClockCycle = mClockCycle;
+                        instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
+//                        clearInstructionFromMemFU(instruction);
+//                        qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+                    }
+                    memfu->mCountDown--;
+                }
+            }
+        }
     }
-//    qDebug()<<"done processing isntructions waiting to be issued";
-    qDebug()<<"";
+//    qDebug()<<"done processing currecntly executing instructions";
+}
 
-    mClockCycle++;
-    if(mScriptInstructionList->length()==dontCareBecuaseDone.length()){
-        this->setRunStatus(TomasuloRunStatus::Done);
+void TomasuloAlgorithm::processDoneExecuting(QList<ScriptInstruction *> *doneExecuting)
+{
+    ScriptInstruction* instruction;
+    CommonDataBusFunctionalUnit* cdb;
+    for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
+        instruction = findFirstIssued(doneExecuting);
+        if(instruction==nullptr){
+            break;
+        }
+        if(instruction->mInstruction.mInstructionType!=InstructionType::Memory){
+            clearInstructionFromGenFU(instruction);
+        }
+
+        if(instruction->mInstruction.mInstructionType==InstructionType::Branch){
+            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
+            doneExecuting->remove(doneExecuting->indexOf(instruction));
+            i--;
+            continue;
+        }
+
+        cdb = mCommonDataBusFunctionalUnitList->at(i);
+        cdb->mBusy = true;
+        cdb->mFunctionalUnitWithClaim = instruction->mDestinationRegister;
+        cdb->mScriptInstruction = instruction;
+        instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
+        instruction->mWriteResultClockCycle = mClockCycle;
+        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
-    emit StepDone();
+//    qDebug()<<"Done processing instructions trying to get into cdb.";
+}
+
+void TomasuloAlgorithm::processDoneReadOrWrite(QList<ScriptInstruction *> *doneReadOrWrite)
+{
+    ScriptInstruction* instruction;
+    for(int i = 0; i<doneReadOrWrite->length(); i++){
+        instruction = doneReadOrWrite->at(i);
+        if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
+            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
+            doneReadOrWrite->removeAt(i);
+            i--;
+        }
+    }
+}
+
+void TomasuloAlgorithm::processExitingCdb(QList<ScriptInstruction *> *exitingCdb)
+{
+    CommonDataBusFunctionalUnit* cdb;
+    ScriptInstruction* instruction;
+    for(int i = 0; i<exitingCdb->length(); i++){
+        instruction = exitingCdb->at(i);
+        instruction->mWriteResultClockCycle = mClockCycle;
+        instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
+        for(int j = 0; j<mCommonDataBusFunctionalUnitList->length(); j++){
+            cdb = mCommonDataBusFunctionalUnitList->at(j);
+            if(cdb->mBusy){
+                cdb->mBusy = false;
+                cdb->mFunctionalUnitWithClaim = "";
+                cdb->mScriptInstruction = nullptr;
+            }
+        }
+    }
+//    qDebug()<<"Done processing isntructions exiting cdb.";
+}
+
+void TomasuloAlgorithm::processCommitPending(QList<ScriptInstruction *> *commitPending)
+{
+    ScriptInstruction* instruction = findFirstIssued(commitPending);
+    if(instruction!=nullptr){
+        for(int i = 0; i<mScriptInstructionList->length(); i++){
+            if(instruction==mScriptInstructionList->at(i) && (i==0 || mScriptInstructionList->at(i-1)->mCurrentPipelineStage==PipelineStages::Commited)){
+                instruction->mCommitClockCycle = mClockCycle;
+                instruction->mCurrentPipelineStage = PipelineStages::Commited;
+                qDebug()<<instruction->mInstructionWhole<<" committed at clock cycle "<<mClockCycle<<".";
+                break;
+            }
+        }
+    }
+    for(int i = 0; i<commitPending->length(); i++){
+//        qDebug()<<"commit pending inst: "<<commitPending.at(i)->mInstructionWhole<<" at cc: "<<mClockCycle;
+        instruction = commitPending->at(i);
+        undoCommonDataBusDependencies(instruction);
+        undoRegisterDependencies(instruction);
+    }
+    //    qDebug()<<"done processing instructions trying to commit.";
+}
+
+void TomasuloAlgorithm::clearInstructionFromGenFU(ScriptInstruction *instruction)
+{
+    GeneralFunctionalUnit* genfu;
+    for(int j = 0; j<mGeneralFunctionalUnitList->length(); j++){
+        genfu = mGeneralFunctionalUnitList->at(j);
+        if(!genfu->mReservationStationList.isEmpty() && genfu->mReservationStationList.first()->mInstructionWhole==instruction->mInstructionWhole){
+            genfu->mBusy = false;
+            genfu->mOperation = "";
+            genfu->mSourceOne = "";
+            genfu->mSourceTwo = "";
+            genfu->mReservationStationList.removeFirst();
+        }
+    }
+}
+
+void TomasuloAlgorithm::clearInstructionFromMemFU(ScriptInstruction *instruction)
+{
+    MemoryFunctionalUnit* memfu;
+    for(int j = 0; j<mMemoryFunctionalUnitList->length(); j++){
+        memfu = mMemoryFunctionalUnitList->at(j);
+        if(memfu->mBusy){
+            memfu->mBusy = false;
+            memfu->mOperation = "";
+            memfu->mSourceOne = "";
+            memfu->mReservationStationList.removeFirst();
+            instruction->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
+            instruction->mReadAccessClockCycle = mClockCycle;
+//                qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" and moved to read write at clock cycle "<<mClockCycle;
+        }
+    }
 }
 
 void TomasuloAlgorithm::reset()
