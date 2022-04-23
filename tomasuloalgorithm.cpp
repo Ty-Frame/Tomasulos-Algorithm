@@ -136,13 +136,8 @@ void TomasuloAlgorithm::processStep()
     CommonDataBusFunctionalUnit* cdb;
     for(int i = 0; i<exitingCdb.length(); i++){
         instruction = exitingCdb.at(i);
-        if(instruction->mInstructionWhole.contains("beqz")){
-            qDebug()<<"Found branch at line 201";
-        }
         instruction->mWriteResultClockCycle = mClockCycle;
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-//      undoCommonDataBusDependencies(instruction);
-//        undoRegisterDependencies(instruction);
         for(int j = 0; j<mCommonDataBusFunctionalUnitList->length(); j++){
             cdb = mCommonDataBusFunctionalUnitList->at(j);
             if(cdb->mBusy){
@@ -159,13 +154,13 @@ void TomasuloAlgorithm::processStep()
         instruction = doneReadOrWrite.at(i);
         if(instruction->mInstruction.mMemoryOptions==MemoryOptions::Store){
             instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-//            undoRegisterDependencies(instruction);
             doneReadOrWrite.removeAt(i);
             i--;
         }
     }
 
     // Process Instructions trying to get into a common data bus (instructions in readwrite OR are not memory instructions AND are done executing)
+    GeneralFunctionalUnit* genfu;
     QList<ScriptInstruction*> readWriteOrDoneExecutingAndNotMemoryInstructions;
     readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneReadOrWrite);
     for(int i = 0; i<doneExecuting.length(); i++){
@@ -178,7 +173,6 @@ void TomasuloAlgorithm::processStep()
     }
 //    readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneExecuting);
 
-    GeneralFunctionalUnit* genfu;
     for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
         instruction = findFirstIssued(&readWriteOrDoneExecutingAndNotMemoryInstructions);
         if(instruction==nullptr){
@@ -196,17 +190,21 @@ void TomasuloAlgorithm::processStep()
                 }
             }
         }
+
+        if(instruction->mInstruction.mInstructionType==InstructionType::Branch){
+            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
+            readWriteOrDoneExecutingAndNotMemoryInstructions.remove(readWriteOrDoneExecutingAndNotMemoryInstructions.indexOf(instruction));
+            i--;
+            continue;
+        }
+
         cdb = mCommonDataBusFunctionalUnitList->at(i);
         cdb->mBusy = true;
         cdb->mFunctionalUnitWithClaim = instruction->mDestinationRegister;
         cdb->mScriptInstruction = instruction;
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-        if(instruction->mInstruction.mInstructionType!=InstructionType::Branch){
-            instruction->mWriteResultClockCycle = mClockCycle;
-        }
-//        undoCommonDataBusDependencies(instruction);
-//        undoRegisterDependencies(instruction);
-//        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
+        instruction->mWriteResultClockCycle = mClockCycle;
+        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
 //    qDebug()<<"Done processing instructions trying to get into cdb.";
 
