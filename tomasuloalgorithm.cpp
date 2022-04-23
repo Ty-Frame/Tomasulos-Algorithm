@@ -136,6 +136,9 @@ void TomasuloAlgorithm::processStep()
     CommonDataBusFunctionalUnit* cdb;
     for(int i = 0; i<exitingCdb.length(); i++){
         instruction = exitingCdb.at(i);
+        if(instruction->mInstructionWhole.contains("beqz")){
+            qDebug()<<"Found branch at line 201";
+        }
         instruction->mWriteResultClockCycle = mClockCycle;
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
 //      undoCommonDataBusDependencies(instruction);
@@ -173,6 +176,7 @@ void TomasuloAlgorithm::processStep()
             i--;
         }
     }
+//    readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneExecuting);
 
     GeneralFunctionalUnit* genfu;
     for(int i = 0; i<mCommonDataBusFunctionalUnitList->length(); i++){
@@ -196,24 +200,20 @@ void TomasuloAlgorithm::processStep()
         cdb->mBusy = true;
         cdb->mFunctionalUnitWithClaim = instruction->mDestinationRegister;
         cdb->mScriptInstruction = instruction;
+        if(instruction->mInstructionWhole.contains("beqz")){
+            qDebug()<<"Found branch at line 201";
+        }
         instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-        instruction->mWriteResultClockCycle = mClockCycle;
+        if(instruction->mInstruction.mInstructionType!=InstructionType::Branch){
+            instruction->mWriteResultClockCycle = mClockCycle;
+        }
 //        undoCommonDataBusDependencies(instruction);
 //        undoRegisterDependencies(instruction);
-        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
+//        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
 //    qDebug()<<"Done processing instructions trying to get into cdb.";
 
     // Process done executing memory related instructions
-    for(int i = 0; i<doneExecuting.length(); i++){
-        instruction = doneExecuting.at(i);
-        if(instruction->mInstruction.mInstructionType==InstructionType::Branch){
-            instruction->mCurrentPipelineStage = PipelineStages::WaitingToCommit;
-            doneExecuting.removeAt(i);
-            i--;
-        }
-    }
-
     MemoryFunctionalUnit* memfu;
     for(int i = 0; i<doneExecuting.length(); i++){
         instruction = findFirstIssued(&doneExecuting);
@@ -296,7 +296,7 @@ void TomasuloAlgorithm::processStep()
                     else{
                         genfu->mCountDown--;
                     }
-                    qDebug()<<instruction->mInstructionWhole<<" started execution in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//                    qDebug()<<instruction->mInstructionWhole<<" started execution in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                 }
             }
         }
@@ -321,7 +321,7 @@ void TomasuloAlgorithm::processStep()
                         else{
                             memfu->mCountDown--;
                         }
-                        qDebug()<<instruction->mInstructionWhole<<" started execution in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//                        qDebug()<<instruction->mInstructionWhole<<" started execution in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                     }
                 }
             }
@@ -350,7 +350,7 @@ void TomasuloAlgorithm::processStep()
             instruction->mIssueClockCycle = mClockCycle;
             instruction->mCurrentPipelineStage = PipelineStages::Issued;
             successfulIssue = true;
-            qDebug()<<instruction->mInstructionWhole<<" issued to "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//            qDebug()<<instruction->mInstructionWhole<<" issued to "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
         }
         else{
             memfu = getOptimalMemoryFunctionalUnit(instruction);
@@ -360,7 +360,7 @@ void TomasuloAlgorithm::processStep()
                 instruction->mIssueClockCycle = mClockCycle;
                 instruction->mCurrentPipelineStage = PipelineStages::Issued;
                 successfulIssue = true;
-                qDebug()<<instruction->mInstructionWhole<<" issued to "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//                qDebug()<<instruction->mInstructionWhole<<" issued to "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
             }
         }
 
@@ -539,12 +539,6 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
                                                                                            rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))){
             return true;
         }
-//        if(!rUnit->mInstruction.isEmpty() && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
-//            return true;
-//        }
-//        if(!rUnit->mInstruction.isEmpty() && ins->mSourceTwoRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
-//            return true;
-//        }
     }
 
     return false;
