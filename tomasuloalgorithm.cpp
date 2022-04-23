@@ -59,7 +59,7 @@ void TomasuloAlgorithm::processStep()
             break;
         }
     }
-//    qDebug()<<"----------------------Clock Cycle: "<<mClockCycle;
+    qDebug()<<"----------------------Clock Cycle: "<<mClockCycle;
 //    qDebug()<<"Total: "<<mScriptInstructionList->length()<<", Sum: "<<(toBeIssued.length()+
 //                                                                       waitingToStartExecution.length()+
 //                                                                       currentlyExecuting.length()+
@@ -200,7 +200,7 @@ void TomasuloAlgorithm::processStep()
         instruction->mWriteResultClockCycle = mClockCycle;
 //        undoCommonDataBusDependencies(instruction);
 //        undoRegisterDependencies(instruction);
-        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
+//        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
 //    qDebug()<<"Done processing instructions trying to get into cdb.";
 
@@ -230,7 +230,7 @@ void TomasuloAlgorithm::processStep()
                 memfu->mReservationStationList.removeFirst();
                 instruction->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
                 instruction->mReadAccessClockCycle = mClockCycle;
-                qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" and moved to read write at clock cycle "<<mClockCycle;
+//                qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" and moved to read write at clock cycle "<<mClockCycle;
             }
         }
     }
@@ -250,7 +250,7 @@ void TomasuloAlgorithm::processStep()
                 if(genfu->mCountDown==0){
                     instruction->mExecutionCompletionClockCycle = mClockCycle;
                     instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
-                    qDebug()<<instruction->mInstructionWhole<<" done executing in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//                    qDebug()<<instruction->mInstructionWhole<<" done executing in "<<genfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                 }
                 genfu->mCountDown--;
             }
@@ -262,7 +262,7 @@ void TomasuloAlgorithm::processStep()
                     if(memfu->mCountDown==0){
                         instruction->mExecutionCompletionClockCycle = mClockCycle;
                         instruction->mCurrentPipelineStage = PipelineStages::ExecutionDone;
-                        qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
+//                        qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" at clock cycle "<<mClockCycle;
                     }
                     memfu->mCountDown--;
                 }
@@ -370,6 +370,7 @@ void TomasuloAlgorithm::processStep()
         }
     }
 //    qDebug()<<"done processing isntructions waiting to be issued";
+    qDebug()<<"";
 
     mClockCycle++;
     if(mScriptInstructionList->length()==dontCareBecuaseDone.length()){
@@ -576,7 +577,7 @@ void TomasuloAlgorithm::undoRegisterDependencies(ScriptInstruction *instruct)
 {
 //    qDebug()<<"trying to undo dep: "<<instruct->mInstructionWhole;
     for(int i = 0; i<mRegisterFunctionalUnitList->length(); i++){
-        if(mRegisterFunctionalUnitList->at(i)->mFunctionalUnit.mName==instruct->mDestinationRegister){
+        if(!mRegisterFunctionalUnitList->at(i)->mInstruction.isEmpty() && mRegisterFunctionalUnitList->at(i)->mInstruction.first()==instruct){
 //            qDebug()<<"Unoding dependecy. Inst: "<<mRegisterFunctionalUnitList->at(i)->mInstruction.first()->mInstructionWhole<<" FU: "<<mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.first();
             mRegisterFunctionalUnitList->at(i)->mInstruction.removeFirst();
             mRegisterFunctionalUnitList->at(i)->mFunctionalUnitWithClaim.removeFirst();
