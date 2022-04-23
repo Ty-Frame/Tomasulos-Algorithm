@@ -200,7 +200,7 @@ void TomasuloAlgorithm::processStep()
         instruction->mWriteResultClockCycle = mClockCycle;
 //        undoCommonDataBusDependencies(instruction);
 //        undoRegisterDependencies(instruction);
-//        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
+        qDebug()<<instruction->mInstructionWhole<<" passed through  "<<cdb->mFunctionalUnit.mName<<" and moved to waiting to commit at clock cycle "<<mClockCycle;
     }
 //    qDebug()<<"Done processing instructions trying to get into cdb.";
 
@@ -533,12 +533,11 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
     RegisterFunctionalUnit* rUnit;
     for(int i = 0; i<len; i++){
         rUnit = mRegisterFunctionalUnitList->at(i);
-        if(!rUnit->mInstruction.isEmpty()){
-            if((rUnit->mInstruction.first()==ins || rUnit->mInstruction.first()==ins) &&
-                    (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle &&
-                                                                                               rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))){
-                return true;
-            }
+        if(!rUnit->mInstruction.isEmpty() &&
+                (rUnit->mInstruction.first()->mDestinationRegister==ins->mSourceOneRegister || rUnit->mInstruction.first()->mDestinationRegister==ins->mSourceTwoRegister) &&
+                (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle &&
+                                                                                           rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))){
+            return true;
         }
 //        if(!rUnit->mInstruction.isEmpty() && ins->mSourceOneRegister == rUnit->mFunctionalUnit.mName && !rUnit->mFunctionalUnitWithClaim.isEmpty() && (rUnit->mInstruction.first()->mIssueClockCycle < ins->mIssueClockCycle || (rUnit->mInstruction.first()->mIssueClockCycle == ins->mIssueClockCycle && rUnit->mInstruction.first()->mIssueIndex < ins->mIssueIndex))/*&& rUnit->mInstruction->mCurrentPipelineStage!=PipelineStages::WaitingToCommit && rUnit->mInstruction->mWriteResultClockCycle>=0*/){
 //            return true;
