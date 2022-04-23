@@ -509,7 +509,7 @@ void MainWindow::populateMemoryReservationTable()
         layout->setAlignment(Qt::AlignCenter);
         layout->setContentsMargins(0, 0, 0, 0);
         QCheckBox* cb = new QCheckBox("");
-        cb->setChecked(mGeneralFunctionalUnitList->at(i)->mBusy);
+        cb->setChecked(mMemoryFunctionalUnitList->at(i)->mBusy);
         layout->addWidget(cb);
         ui->memoryReservationStatusTableWidget->setCellWidget(1 + i, 2, widget);
         model->setData(model->index(1 + i, 3), mMemoryFunctionalUnitList->at(i)->mSourceOne);
