@@ -59,14 +59,26 @@ private:
     QList<ScriptInstruction*>* mScriptInstructionList;
 
     unsigned int mCurrentInstruction = 0;
-    unsigned int mClockCycle = 1;
+    int mClockCycle = 1;
     int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
+
+    void processToBeIssued(QList<ScriptInstruction*>* toBeIssued);
+    void processWaitingToStartExecution(QList<ScriptInstruction*>* waitingToStartExecution);
+    void processCurrentlyExecuting(QList<ScriptInstruction*>* currentlyExecuting);
+    void processDoneExecuting(QList<ScriptInstruction*>* doneExecuting);
+    void processDoneReadOrWrite(QList<ScriptInstruction*>* doneReadOrWrite);
+    void processExitingCdb(QList<ScriptInstruction*>* exitingCdb);
+    void processCommitPending(QList<ScriptInstruction*>* commitPending);
+
+    void clearInstructionFromGenFU(ScriptInstruction* instruction);
+    void clearInstructionFromMemFU(ScriptInstruction* instruction);
 
     void updateFunctionalUnits();
     void checkForDependencies(ScriptInstruction* ins); // Check for data depencides for instruction
     void issueInstructions();
     bool doDependenciesExist(ScriptInstruction* ins);
+    bool doStoreDependenciesExist(ScriptInstruction* ins);
     void setDependencies(GeneralFunctionalUnit* genfu, ScriptInstruction* instruct);
     void setDependencies(MemoryFunctionalUnit* memfu, ScriptInstruction* instruct);
     void undoRegisterDependencies(ScriptInstruction* instruct);
