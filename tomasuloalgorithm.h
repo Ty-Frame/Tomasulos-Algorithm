@@ -59,7 +59,7 @@ private:
     QList<ScriptInstruction*>* mScriptInstructionList;
 
     unsigned int mCurrentInstruction = 0;
-    unsigned int mClockCycle = 1;
+    int mClockCycle = 1;
     int mIssueNumber;
     TomasuloRunStatus runStatus = TomasuloRunStatus::NotStarted;
 
