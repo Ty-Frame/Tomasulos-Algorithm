@@ -134,8 +134,7 @@ void TomasuloAlgorithm::processStep()
     }
 //    readWriteOrDoneExecutingAndNotMemoryInstructions.append(doneExecuting);
 
-    // Get next instruction
-    ins = mScriptInstructionList->at(currentInstruction);
+    processDoneExecuting(&readWriteOrDoneExecutingAndNotMemoryInstructions);
 
     // Process done executing memory related instructions
     for(int i = 0; i<doneExecuting.length(); i++){
@@ -498,65 +497,6 @@ void TomasuloAlgorithm::setRunStatus(TomasuloRunStatus newRunStatus)
 }
 
 void TomasuloAlgorithm::updateFunctionalUnits() {
-    // Initiate Execution
-    for(int i = 0; i < mGeneralFunctionalUnitList->length(); i++) {
-         GeneralFunctionalUnit unit = mGeneralFunctionalUnitList->at(i);
-         if(unit.mBusy) {
-             ScriptInstruction *ins = unit.mReservationStationList.at(0);
-             // TODO Check for Dependencies
-             if(ins->mInstruction.mPipelineStages == PipelineStages::Issue) {  // Move instruction into Exection stage
-                 ins->mInstruction.mPipelineStages = PipelineStages::Execution;
-                 ins->mExecutionStartClockCycle = mClockCycle;
-                 unit.mBusy = true;
-
-             } else if(ins->mInstruction.mPipelineStages == PipelineStages::Execution && unit.mCountDown > 0) {  // Instruction continue in the execution stage
-                 unit.mCountDown--;
-
-             } else if(ins->mInstruction.mPipelineStages == PipelineStages::Execution && unit.mCountDown == 0) {  // Instruction finished the execution stage
-                ins->mExecutionCompletionClockCycle = mClockCycle;
-                unit.mBusy = false;
-                ins->mInstruction.mPipelineStages = PipelineStages::Writeback;
-
-
-             } else if(ins->mInstruction.mPipelineStages == PipelineStages::Writeback) {
-                 // TODO check fo CDB to be available
-                 ins->mInstruction.mPipelineStages = PipelineStages::Commit;
-
-             } else if(ins->mInstruction.mPipelineStages == PipelineStages::Commit) {
-
-                 ins->mInstruction.mPipelineStages = PipelineStages::None;
-
-
-             }
-            unit.mReservationStationList.replace(0,ins);
-         }
-         mGeneralFunctionalUnitList->replace(i,unit);
-    }
-
-}
-
-bool TomasuloAlgorithm::issueInstruction(ScriptInstruction *ins) {
-    // Checks to see if a Reservation Station is available to issue instruction
-
-    // Does each Reservation count correspond to all units or just one individual unit?
-
-    // Arithmetic ins
-    FunctionalUnit functionalUnit;
-    // Find Available FunctionalUnit
-    if(ins->mInstruction.mInstructionType == InstructionType::Arithmetic) {
-        for(int i = 0; i < mGeneralFunctionalUnitList->length(); i++) {
-            GeneralFunctionalUnit unit = mGeneralFunctionalUnitList->at(i);
-            if(unit.mBusy) // TODO I think unit type is only busy when instruction is in EX stage
-                continue;
-            for(int j=0; j < unit.mFunctionalUnit.mReservationStationCount; j++) {
-                if(unit.mReservationStationList.length() == 0 || unit.mReservationStationList.value(j)->mInstructionName.isNull()) {
-                    ins->mInstruction.mPipelineStages = PipelineStages::Issue;
-                    ins->mIssueClockCycle = mClockCycle;
-                    unit.mReservationStationList.append(ins);
-                    unit.mCountDown = unit.mFunctionalUnit.mLatency; // Assumming countDown is for counting down when execution is done
-                    unit.mBusy = true;
-                    mGeneralFunctionalUnitList->replace(i,unit);
-                    return true;
 
     GeneralFunctionalUnit* genfu;
     ScriptInstruction* instruct;
