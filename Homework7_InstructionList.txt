@@ -1,0 +1,12 @@
+ld: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Load}
+str: InstructionType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Store}
+add: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Add}, MemoryOptions{}
+sub: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Subtract}, MemoryOptions{}
+mul: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Multiply}, MemoryOptions{}
+div: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Divide}, MemoryOptions{}
+addf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Add}, MemoryOptions{}
+subf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Subtract}, MemoryOptions{}
+mulf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Multiply}, MemoryOptions{}
+divf: InstructionType{Arithmetic}, DataType{Float}, ArithmeticOptions{Divide}, MemoryOptions{}
+dsgtui: InstructionType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Branch Evaluation}, MemoryOptions{}
+beqz: InstructionType{Branch}, DataType{Integer}, ArithmeticOptions{Add}, MemoryOptions{}

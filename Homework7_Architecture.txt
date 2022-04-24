@@ -1,0 +1,9 @@
+Common Data Bus: Count{1}, Latency{1}, ReservationStationCount{0}, FunctionalUnitType{Common Data Bus}, DataType{}, ArithmeticOptions{}, MemoryOptions{}
+R: Count{10}, Latency{1}, ReservationStationCount{0}, FunctionalUnitType{Register}, DataType{}, ArithmeticOptions{}, MemoryOptions{}
+F: Count{10}, Latency{1}, ReservationStationCount{0}, FunctionalUnitType{Register}, DataType{}, ArithmeticOptions{}, MemoryOptions{}
+Load Store: Count{1}, Latency{1}, ReservationStationCount{2}, FunctionalUnitType{Memory}, DataType{}, ArithmeticOptions{}, MemoryOptions{Load, Store}
+FP Adder: Count{1}, Latency{4}, ReservationStationCount{3}, FunctionalUnitType{Arithmetic}, DataType{Float}, ArithmeticOptions{Add}, MemoryOptions{}
+FP Multiplier: Count{1}, Latency{8}, ReservationStationCount{3}, FunctionalUnitType{Arithmetic}, DataType{Float}, ArithmeticOptions{Multiply}, MemoryOptions{}
+FP Divider: Count{1}, Latency{15}, ReservationStationCount{2}, FunctionalUnitType{Arithmetic}, DataType{Float}, ArithmeticOptions{Divide}, MemoryOptions{}
+Integer ALU: Count{1}, Latency{1}, ReservationStationCount{2}, FunctionalUnitType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Add, Subtract, Multiply, Divide}, MemoryOptions{}
+Branch Evaluator: Count{1}, Latency{1}, ReservationStationCount{1}, FunctionalUnitType{Arithmetic}, DataType{Integer, Float}, ArithmeticOptions{Branch Evaluation}, MemoryOptions{}
