@@ -7,3 +7,4 @@ FP Multiplier: Count{1}, Latency{8}, ReservationStationCount{3}, FunctionalUnitT
 FP Divider: Count{1}, Latency{15}, ReservationStationCount{2}, FunctionalUnitType{Arithmetic}, DataType{Float}, ArithmeticOptions{Divide}, MemoryOptions{}
 Integer ALU: Count{1}, Latency{1}, ReservationStationCount{2}, FunctionalUnitType{Arithmetic}, DataType{Integer}, ArithmeticOptions{Add, Subtract, Multiply, Divide}, MemoryOptions{}
 Branch Evaluator: Count{1}, Latency{1}, ReservationStationCount{1}, FunctionalUnitType{Arithmetic}, DataType{Integer, Float}, ArithmeticOptions{Branch Evaluation}, MemoryOptions{}
+Issuer: Count{1}, Latency{1}, ReservationStationCount{0}, FunctionalUnitType{Issuer}, DataType{}, ArithmeticOptions{}, MemoryOptions{}
