@@ -115,6 +115,8 @@ void TomasuloAlgorithm::processStep()
 //    qDebug()<<"Very start of algorithm";
     processCommitPending(&commitPending);
 
+    processToBeIssued(&toBeIssued);
+
     // Process instructions exiting cdb
     processExitingCdb(&exitingCdb);
 
@@ -165,7 +167,7 @@ void TomasuloAlgorithm::processStep()
     processWaitingToStartExecution(&waitingToStartExecution);
 
 
-    processToBeIssued(&toBeIssued);
+
 
     for(int i = 0; i<mScriptInstructionList->length(); i++){
         instruction = mScriptInstructionList->at(i);
@@ -448,6 +450,8 @@ void TomasuloAlgorithm::clearInstructionFromMemFU(ScriptInstruction *instruction
             memfu->mReservationStationList.removeFirst();
             instruction->mCurrentPipelineStage = PipelineStages::ReadWriteAccess;
             instruction->mReadAccessClockCycle = mClockCycle;
+
+
 //                qDebug()<<instruction->mInstructionWhole<<" done executing in "<<memfu->mFunctionalUnit.mName<<" and moved to read write at clock cycle "<<mClockCycle;
         }
     }
@@ -602,7 +606,8 @@ void TomasuloAlgorithm::issueInstructions() {
 
 bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
 {
-    bool sOneFound, sTwoFound = false;
+    bool sOneFound = false;
+    bool sTwoFound = false;
     ScriptInstruction* beforeInstruction;
     for(int i = mScriptInstructionList->indexOf(ins)-1; i>=0; i--){
         beforeInstruction = mScriptInstructionList->at(i);
@@ -655,7 +660,8 @@ bool TomasuloAlgorithm::doDependenciesExist(ScriptInstruction *ins)
 
 bool TomasuloAlgorithm::doStoreDependenciesExist(ScriptInstruction *ins)
 {
-    bool sOneFound, sTwoFound = false;
+    bool sOneFound = false;
+    bool sTwoFound = false;
     ScriptInstruction* beforeInstruction;
     for(int i = mScriptInstructionList->indexOf(ins)-1; i>=0; i--){
         beforeInstruction = mScriptInstructionList->at(i);
@@ -668,20 +674,20 @@ bool TomasuloAlgorithm::doStoreDependenciesExist(ScriptInstruction *ins)
             }
             switch(beforeInstruction->mInstruction.mInstructionType){
             case InstructionType::Arithmetic:
-                if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0/* || beforeInstruction->mWriteResultClockCycle==mClockCycle*/)){
+                if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0 || beforeInstruction->mWriteResultClockCycle==mClockCycle)){
                     qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                     return true;
                 }
                 break;
             case InstructionType::Memory:
                 if(beforeInstruction->mInstruction.mMemoryOptions==MemoryOptions::Load){
-                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0/* || beforeInstruction->mWriteResultClockCycle==mClockCycle*/)){
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mWriteResultClockCycle<0 || beforeInstruction->mWriteResultClockCycle==mClockCycle)){
                         qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                         return true;
                     }
                 }
                 else{
-                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mReadAccessClockCycle<0/* || beforeInstruction->mReadAccessClockCycle==mClockCycle*/)){
+                    if(beforeInstruction->mIssueClockCycle>0 && (beforeInstruction->mReadAccessClockCycle<0 || beforeInstruction->mReadAccessClockCycle==mClockCycle)){
                         qDebug()<<"dependency found for "<<ins->mInstructionWhole<<" at "<<beforeInstruction->mInstructionWhole;
                         return true;
                     }
@@ -778,7 +784,7 @@ GeneralFunctionalUnit *TomasuloAlgorithm::getOptimalGeneralFunctionalUnit(Script
            IsOfArithmeticOptions(&(holdFu->mFunctionalUnit),ins->mInstruction.mArithmeticOptions) &&
            ins->mInstruction.mDataType!=DataType::None &&
            IsOfDataType(&(holdFu->mFunctionalUnit),ins->mInstruction.mDataType) &&
-           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount+1){
+           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount){
             capableFuList.append(holdFu);
         }
     }
@@ -815,7 +821,7 @@ MemoryFunctionalUnit *TomasuloAlgorithm::getOptimalMemoryFunctionalUnit(ScriptIn
         holdFu = mMemoryFunctionalUnitList->at(i);
         if(ins->mInstruction.mMemoryOptions!=MemoryOptions::None &&
            IsOfMemoryOptions(&(holdFu->mFunctionalUnit),ins->mInstruction.mMemoryOptions) &&
-           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount+1){
+           holdFu->mReservationStationList.length() < holdFu->mFunctionalUnit.mReservationStationCount){
             capableFuList.append(holdFu);
         }
     }
