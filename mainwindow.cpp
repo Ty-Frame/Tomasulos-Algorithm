@@ -820,6 +820,7 @@ void MainWindow::on_actionClose_Application_triggered()
 void MainWindow::unloadFiles()
 {
     clearAllTables();
+    mTomasuloAlgorithm->reset();
 }
 
 void MainWindow::resetAlgorithm()
